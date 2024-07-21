@@ -44,7 +44,7 @@ class Utils {
 	 * @param float $volume
 	 * @param float $pitch
 	 */
-    public static function playSound(Player $player, string $soundName, float $volume = 1.0, float $pitch = 1.0): void 
+    	public static function playSound(Player $player, string $soundName, float $volume = 1.0, float $pitch = 1.0): void 
 	{
 		$pk = PlaySoundPacket::create(
 			$soundName,
@@ -61,18 +61,18 @@ class Utils {
 	/**
 	 * @param string $crateName
 	 */
-	public static function clearItems(string $crateName): void 
+    	public static function clearItems(string $crateName): void 
 	{
-        foreach(Server::getInstance()->getWorldManager()->getWorlds() as $world){
-            foreach($world->getEntities() as $entity){
-                if($entity instanceof ItemEntity){
-                    if($entity->getItem()->getNamedTag()->getTag("CrateItem") !== null and $entity->getItem()->getNamedTag()->getString("CrateItem") === $crateName){
-                        $entity->flagForDespawn();
-                    }
-                }
-            }
-        }
-    }
+        	foreach(Server::getInstance()->getWorldManager()->getWorlds() as $world){
+            		foreach($world->getEntities() as $entity){
+                		if($entity instanceof ItemEntity){
+                    			if($entity->getItem()->getNamedTag()->getTag("CrateItem") !== null and $entity->getItem()->getNamedTag()->getString("CrateItem") === $crateName){
+                        			$entity->flagForDespawn();
+                    			}
+                		}
+            		}
+        	}
+    	}
 
 }
 
