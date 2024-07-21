@@ -1,0 +1,40 @@
+PLAYER_NOT_ONLINE: "&cPlayer is not online"
+
+CRATE_CREATED: "{PREFIX}&aCrate {CRATE} created successfully"
+CRATE_REMOVED: "{PREFIX}&cCrate {CRATE} removed successfully"
+
+CRATE_SET_BLOCK: "{PREFIX}&aCrate {CRATE} block was created successfully"
+CRATE_REMOVE_BLOCK: "{PREFIX}&cCrate {CRATE} block was removed successfully"
+
+CRATE_EMPTY_DROPS: "&cThis Crate is empty"
+CRATE_CURRENTLY_OPEN: "&cCrate is currently open"
+CRATE_NAME_INVENTORY: "&8{CRATE} Crate"
+CRATE_ITEM_NAME_INVENTORY: "&a{COUNT}x {NAME}"
+CRATE_ITEM_LORE_INVENTORY: "&eChance &f{CHANCE}"
+CRATE_OPEN_REWARD: "&aCongratulations you won &e{REWARD} &aon &e{CRATE} Crate"
+CRATE_ANIMATION_TITLE: "&3{TIME}"
+CRATE_ANIMATION_SUBTITLE: "&eChoosing Gift"
+
+COMMAND_CRATE_NOT_EXISTS: "&cThis crate does not exists."
+COMMAND_USE_NUMERIC_VALUE: "&cPlease use numeric value."
+COMMAND_CRATE_ALREADY_EXISTS: "&cThis crate already exists."
+COMMAND_CRATE_POSITION_NOT_EXISTS: "&cCrate position does not exists."
+COMMAND_CURRENTLY_SETUP: "&cYou already in configuration mode."
+
+COMMAND_SETUP_SET_BLOCK: "&aTouch a valid block to register the crate."
+COMMAND_SETUP_SET_CHANCE: "&aWrite chance in the chat."
+COMMAND_SETUP_SET_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: give money {PLAYER} 100,give {PLAYER} diamond_sword."
+COMMAND_SETUP_CRATE_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: say {PLAYER} open crate,give {PLAYER} diamond_sword."
+COMMAND_SETUP_CRATE_HOLOGRAM: "&aWrite the hologram text in the chat.\n&eNote: &fUse {LINE} for line breaks"
+COMMAND_SETUP_CRATE_PARTICLE: "&aWrite the color rgb in the chat.\n&eExample: &f0:255:0"
+
+SETUP_SUCCESS_CHANCE: "&aThe chance was set to {VALUE}"
+SETUP_SUCCESS_COMMAND: "&aThe commands was set to {VALUE}"
+SETUP_SUCCESS_HOLOGRAM: "&aThe hologram was set to {VALUE}"
+SETUP_SUCCESS_CRATE_COMMAND: "&aThe crate commands was set to {VALUE}"
+SETUP_SUCCESS_CRATE_PARTICLE: "&aThe crate particle color was set to {VALUE}"
+
+COMMAND_KEY_GIVE: "&aPlayer {PLAYER} received a x{COUNT} {CRATE} key successfully."
+COMMAND_KEY_RECEIVED: "&aYou received a x{COUNT} {CRATE} key."
+
+COMMAND_KEYALL_GIVE: "&aPlayers online received a x{COUNT} {CRATE} key successfully."

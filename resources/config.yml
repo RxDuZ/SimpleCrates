@@ -1,0 +1,24 @@
+#  ███████╗██╗███╗   ███╗██████╗ ██╗     ███████╗ ██████╗██████╗  █████╗ ████████╗███████╗███████╗
+#  ██╔════╝██║████╗ ████║██╔══██╗██║     ██╔════╝██╔════╝██╔══██╗██╔══██╗╚══██╔══╝██╔════╝██╔════╝
+#  ███████╗██║██╔████╔██║██████╔╝██║     █████╗  ██║     ██████╔╝███████║   ██║   █████╗  ███████╗
+#  ╚════██║██║██║╚██╔╝██║██╔═══╝ ██║     ██╔══╝  ██║     ██╔══██╗██╔══██║   ██║   ██╔══╝  ╚════██║
+#  ███████║██║██║ ╚═╝ ██║██║     ███████╗███████╗╚██████╗██║  ██║██║  ██║   ██║   ███████╗███████║
+#  ╚══════╝╚═╝╚═╝     ╚═╝╚═╝     ╚══════╝╚══════╝ ╚═════╝╚═╝  ╚═╝╚═╝  ╚═╝   ╚═╝   ╚══════╝╚══════╝
+#                                                                                                 
+# SimpleCrates config by iRxDuZ ツ
+
+# Keys configuration
+keys:
+  id: "tripwire_hook"
+  name: "§d{CRATE} Key"
+  lore: "§eClaim rewards from a {CRATE} Crate"
+
+# Crates configuration default
+# Default blocks (chest, enchantment table, end portal frame, lime shulker box)
+crates:
+  blocks: ["chest", "enchant_table", "end_portal_frame", "lime_shulker_box"]
+  animation: true
+  duration: 5
+  preview-items: true
+  drop-item-time: 5
+  particle: true

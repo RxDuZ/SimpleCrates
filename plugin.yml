@@ -1,0 +1,18 @@
+name: SimpleCrates
+main: rxduz\crates\Main
+api: 5.17.0
+version: 2.0
+author: "iRxDuZ"
+description: "Crates plugin for your server!"
+virions: ["InvMenu"]
+
+permissions:
+  simplecrates.command.crate:
+    description: "Allow to use /crate command"
+    default: op
+  simplecrates.command.key:
+    description: "Allow to use /key command"
+    default: op
+  simplecrates.command.keyall:
+    description: "Allow to use /keyall command"
+    default: op
