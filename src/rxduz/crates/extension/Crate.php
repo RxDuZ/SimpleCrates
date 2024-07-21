@@ -427,8 +427,8 @@ class Crate {
 
         $size = 0.6;
 
-		$a = cos(deg2rad($this->particleCounter/0.06))* $size;
-		$b = sin(deg2rad($this->particleCounter/0.06))* $size;
+	$a = cos(deg2rad($this->particleCounter/0.06))* $size;
+	$b = sin(deg2rad($this->particleCounter/0.06))* $size;
 
         $vector1 = new Vector3($x - $a, $y, $z - $b);
         $vector2 = new Vector3($x + $a, $y, $z + $b);
@@ -438,7 +438,7 @@ class Crate {
         $cratePosition->getWorld()->addParticle($vector1, new DusterParticle(new Color($color[0] ?? 0, $color[1] ?? 255, $color[2] ?? 0)));
         $cratePosition->getWorld()->addParticle($vector2, new DusterParticle(new Color($color[0] ?? 0, $color[1] ?? 255, $color[2] ?? 0)));
 
-		$this->particleCounter++;
+	$this->particleCounter++;
         
         if($this->particleCounter > 200){
             $this->particleCounter = 0;
