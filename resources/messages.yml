@@ -1,3 +1,6 @@
+# DO NOT TOUCH!
+MESSAGES_VERSION: 1.2
+
 PLAYER_NOT_ONLINE: "&cPlayer is not online"
 
 CRATE_CREATED: "{PREFIX}&aCrate {CRATE} created successfully"
@@ -18,6 +21,7 @@ CRATE_ANIMATION_SUBTITLE: "&eChoosing Gift"
 COMMAND_CRATE_NOT_EXISTS: "&cThis crate does not exists."
 COMMAND_USE_NUMERIC_VALUE: "&cPlease use numeric value."
 COMMAND_CRATE_ALREADY_EXISTS: "&cThis crate already exists."
+COMMAND_CRATE_POSITION_ALREADY_EXISTS: "&cCrate position already exists."
 COMMAND_CRATE_POSITION_NOT_EXISTS: "&cCrate position does not exists."
 COMMAND_CURRENTLY_SETUP: "&cYou already in configuration mode."
 
@@ -26,13 +30,15 @@ COMMAND_SETUP_SET_CHANCE: "&aWrite chance in the chat."
 COMMAND_SETUP_SET_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: give money {PLAYER} 100,give {PLAYER} diamond_sword."
 COMMAND_SETUP_CRATE_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: say {PLAYER} open crate,give {PLAYER} diamond_sword."
 COMMAND_SETUP_CRATE_HOLOGRAM: "&aWrite the hologram text in the chat.\n&eNote: &fUse {LINE} for line breaks"
-COMMAND_SETUP_CRATE_PARTICLE: "&aWrite the color rgb in the chat.\n&eExample: &f0:255:0"
+COMMAND_SETUP_CRATE_PARTICLE: "&aWrite the particle ID in the chat or write: rgb for the colored particle..\n&eExample: 8 (Flame particle)"
+COMMAND_SETUP_CRATE_PARTICLE_COLOR: "&aWrite the color rgb in the chat.\n&eExample: &f0:255:0 (Green color)"
 
 SETUP_SUCCESS_CHANCE: "&aThe chance was set to {VALUE}"
 SETUP_SUCCESS_COMMAND: "&aThe commands was set to {VALUE}"
 SETUP_SUCCESS_HOLOGRAM: "&aThe hologram was set to {VALUE}"
 SETUP_SUCCESS_CRATE_COMMAND: "&aThe crate commands was set to {VALUE}"
-SETUP_SUCCESS_CRATE_PARTICLE: "&aThe crate particle color was set to {VALUE}"
+SETUP_SUCCESS_CRATE_PARTICLE: "&aThe crate particle id was set to {VALUE}"
+SETUP_SUCCESS_CRATE_PARTICLE_COLOR: "&aThe crate particle color was set to {VALUE}"
 
 COMMAND_KEY_GIVE: "&aPlayer {PLAYER} received a x{COUNT} {CRATE} key successfully."
 COMMAND_KEY_RECEIVED: "&aYou received a x{COUNT} {CRATE} key."

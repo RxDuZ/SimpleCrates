@@ -15,7 +15,8 @@ use rxduz\crates\task\CrateUpdateTask;
 use rxduz\crates\task\ParticleUpdateTask;
 use rxduz\crates\translation\Translation;
 
-class Main extends PluginBase {
+class Main extends PluginBase
+{
 
     use SingletonTrait;
 
@@ -38,7 +39,7 @@ class Main extends PluginBase {
 
     protected function onEnable(): void
     {
-        if(!InvMenuHandler::isRegistered()){
+        if (!InvMenuHandler::isRegistered()) {
             InvMenuHandler::register($this);
         }
 
@@ -74,30 +75,31 @@ class Main extends PluginBase {
     protected function onDisable(): void
     {
         $this->getCrateManager()->closeAll();
-        
+
         $this->getLogger()->info(self::PREFIX . TextFormat::RED . "plugin disabled!");
     }
 
     /**
      * @return CrateManager
      */
-    public function getCrateManager(): CrateManager {
+    public function getCrateManager(): CrateManager
+    {
         return $this->crateManager;
     }
 
     /**
      * @return PositionManager
      */
-    public function getPositionManager(): PositionManager {
+    public function getPositionManager(): PositionManager
+    {
         return $this->positionManager;
     }
 
     /**
      * @return YamlDataProvider
      */
-    public function getDataProvider(): YamlDataProvider {
+    public function getDataProvider(): YamlDataProvider
+    {
         return $this->dataProvider;
     }
-
 }
-?>

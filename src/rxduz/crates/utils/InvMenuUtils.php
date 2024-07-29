@@ -15,30 +15,38 @@ use rxduz\crates\extension\Crate;
 use rxduz\crates\Main;
 use rxduz\crates\translation\Translation;
 
-class InvMenuUtils {
+class InvMenuUtils
+{
 
     /**
      * @param Player $player
      * @param Crate $crate
      */
-    public static function sendCrateEditorMenu(Player $player, Crate $crate): void {
+    public static function sendCrateEditorMenu(Player $player, Crate $crate): void
+    {
         $menu = InvMenu::create(InvMenu::TYPE_CHEST);
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . "Crate Editor");
 
-        $menu->setListener(function(InvMenuTransaction $transaction) use($crate): InvMenuTransactionResult {
+        $menu->setListener(function (InvMenuTransaction $transaction) use ($crate): InvMenuTransactionResult {
             $player = $transaction->getPlayer();
 
             $item = $transaction->getItemClicked();
 
-            switch($item->getStateId()){
+            switch ($item->getStateId()) {
                 case VanillaBlocks::CHEST()->asItem()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
-            
+
+                    if (Main::getInstance()->getPositionManager()->exists($crate->getName())) {
+                        $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CRATE_POSITION_ALREADY_EXISTS"));
+
+                        return $transaction->discard();
+                    }
+
                     Main::getInstance()->getCrateManager()->setConfigurator(
                         new Configurator(
                             $player->getName(),
@@ -48,50 +56,50 @@ class InvMenuUtils {
                     );
 
                     $player->removeCurrentWindow();
-            
+
                     $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_SETUP_SET_BLOCK", ["{PREFIX}" => Main::PREFIX]));
                     break;
                 case VanillaBlocks::BEDROCK()->asItem()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
-    
-                    if(!Main::getInstance()->getPositionManager()->exists($crate->getName())){
+
+                    if (!Main::getInstance()->getPositionManager()->exists($crate->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CRATE_POSITION_NOT_EXISTS"));
-    
+
                         return $transaction->discard();
                     }
-    
+
                     $crate->close();
-    
+
                     Main::getInstance()->getPositionManager()->removePosition($crate->getName());
 
                     $player->removeCurrentWindow();
-    
+
                     $player->sendMessage(Translation::getInstance()->getMessage("CRATE_REMOVE_BLOCK", [
                         "{PREFIX}" => Main::PREFIX,
                         "{CRATE}" => $crate->getName()
                     ]));
                     break;
                 case VanillaItems::EMERALD()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
 
                     //$player->getInventory()->clearAll();
 
                     //$player->getCursorInventory()->clearAll();
-    
+
                     self::sendEditCrateItemChance($player, $crate);
                     break;
                 case VanillaItems::PAPER()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
 
@@ -100,27 +108,27 @@ class InvMenuUtils {
                     $player->getInventory()->clearAll();
 
                     $player->getCursorInventory()->clearAll();
-    
+
                     self::sendEditCrateItemCommands($player, $crate);
                     break;
                 case VanillaItems::DIAMOND()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
 
                     $player->removeCurrentWindow();
-    
+
                     self::sendEditCrateInventory($player, $crate);
                     break;
                 case VanillaItems::NAME_TAG()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
-            
+
                     Main::getInstance()->getCrateManager()->setConfigurator(
                         new Configurator(
                             $player->getName(),
@@ -130,16 +138,16 @@ class InvMenuUtils {
                     );
 
                     $player->removeCurrentWindow();
-            
+
                     $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_SETUP_CRATE_HOLOGRAM", ["{PREFIX}" => Main::PREFIX]));
                     break;
                 case VanillaItems::BOOK()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
-            
+
                     Main::getInstance()->getCrateManager()->setConfigurator(
                         new Configurator(
                             $player->getName(),
@@ -149,16 +157,16 @@ class InvMenuUtils {
                     );
 
                     $player->removeCurrentWindow();
-            
+
                     $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_SETUP_CRATE_COMMAND", ["{PREFIX}" => Main::PREFIX]));
                     break;
-                case VanillaItems::BLAZE_POWDER()->getStateId():
-                    if(Main::getInstance()->getCrateManager()->isConfigurator($player->getName())){
+                case VanillaItems::AMETHYST_SHARD()->getStateId():
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
                         $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-            
+
                         return $transaction->discard();
                     }
-            
+
                     Main::getInstance()->getCrateManager()->setConfigurator(
                         new Configurator(
                             $player->getName(),
@@ -168,8 +176,27 @@ class InvMenuUtils {
                     );
 
                     $player->removeCurrentWindow();
-            
+
                     $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_SETUP_CRATE_PARTICLE", ["{PREFIX}" => Main::PREFIX]));
+                    break;
+                case VanillaItems::BLAZE_POWDER()->getStateId():
+                    if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
+                        $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
+
+                        return $transaction->discard();
+                    }
+
+                    Main::getInstance()->getCrateManager()->setConfigurator(
+                        new Configurator(
+                            $player->getName(),
+                            $crate,
+                            CrateManager::CONFIGURATOR_CRATE_PARTICLE_COLOR
+                        )
+                    );
+
+                    $player->removeCurrentWindow();
+
+                    $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_SETUP_CRATE_PARTICLE_COLOR", ["{PREFIX}" => Main::PREFIX]));
                     break;
             }
 
@@ -190,7 +217,9 @@ class InvMenuUtils {
 
         $menu->getInventory()->setItem(6, VanillaItems::BOOK()->setCustomName(TextFormat::BOLD . TextFormat::GOLD . "Edit Crate Commands"));
 
-        $menu->getInventory()->setItem(7, VanillaItems::BLAZE_POWDER()->setCustomName(TextFormat::BOLD . TextFormat::DARK_PURPLE . "Edit Particle Color"));
+        $menu->getInventory()->setItem(7, VanillaItems::AMETHYST_SHARD()->setCustomName(TextFormat::BOLD . TextFormat::MINECOIN_GOLD . "Edit Particle Id"));
+
+        $menu->getInventory()->setItem(8, VanillaItems::BLAZE_POWDER()->setCustomName(TextFormat::BOLD . TextFormat::DARK_PURPLE . "Edit Particle " . TextFormat::RED . "R" . TextFormat::GREEN . "G" . TextFormat::BLUE . "B"));
 
         $menu->send($player);
     }
@@ -199,12 +228,13 @@ class InvMenuUtils {
      * @param Player $player
      * @param Crate $crate
      */
-    public static function sendEditCrateInventory(Player $player, Crate $crate): void {
+    public static function sendEditCrateInventory(Player $player, Crate $crate): void
+    {
         $menu = InvMenu::create(InvMenu::TYPE_CHEST);
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . $crate->getName() . " Inventory Editor");
 
-        $menu->setInventoryCloseListener(function(Player $player, Inventory $inventory) use($crate): void {
+        $menu->setInventoryCloseListener(function (Player $player, Inventory $inventory) use ($crate): void {
             $crate->setItems($inventory->getContents());
 
             $player->sendMessage(TextFormat::GREEN . "The items were saved successfully");
@@ -219,17 +249,18 @@ class InvMenuUtils {
      * @param Player $player
      * @param Crate $crate
      */
-    public static function sendEditCrateItemChance(Player $player, Crate $crate): void {
+    public static function sendEditCrateItemChance(Player $player, Crate $crate): void
+    {
         $menu = InvMenu::create(InvMenu::TYPE_CHEST);
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . $crate->getName() . " Chance Editor");
 
-        $menu->setListener(function(InvMenuTransaction $transaction) use($crate): InvMenuTransactionResult {
+        $menu->setListener(function (InvMenuTransaction $transaction) use ($crate): InvMenuTransactionResult {
             $player = $transaction->getPlayer();
 
             $item = $transaction->getItemClicked();
 
-            if($crate->isValidItem($item)){
+            if ($crate->isValidItem($item)) {
                 $slot = $transaction->getAction()->getSlot();
 
                 Main::getInstance()->getCrateManager()->setConfigurator(new Configurator(
@@ -239,13 +270,13 @@ class InvMenuUtils {
                     $slot,
                     $item
                 ));
-    
+
                 $player->removeCurrentWindow();
 
                 $player->sendMessage(
                     TextFormat::YELLOW . "Current Chance: " . TextFormat::WHITE . strval($crate->getChanceToItem($item))
                 );
-    
+
                 $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_SETUP_SET_CHANCE", ["{PREFIX}" => Main::PREFIX]));
             }
 
@@ -261,17 +292,18 @@ class InvMenuUtils {
      * @param Player $player
      * @param Crate $crate
      */
-    public static function sendEditCrateItemCommands(Player $player, Crate $crate): void {
+    public static function sendEditCrateItemCommands(Player $player, Crate $crate): void
+    {
         $menu = InvMenu::create(InvMenu::TYPE_CHEST);
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . $crate->getName() . " Command Editor");
 
-        $menu->setListener(function(InvMenuTransaction $transaction) use($crate): InvMenuTransactionResult {
+        $menu->setListener(function (InvMenuTransaction $transaction) use ($crate): InvMenuTransactionResult {
             $player = $transaction->getPlayer();
 
             $item = $transaction->getItemClicked();
 
-            if($crate->isValidItem($item)){
+            if ($crate->isValidItem($item)) {
                 $slot = $transaction->getAction()->getSlot();
 
                 Main::getInstance()->getCrateManager()->setConfigurator(new Configurator(
@@ -281,7 +313,7 @@ class InvMenuUtils {
                     $slot,
                     $item
                 ));
-    
+
                 $player->removeCurrentWindow();
 
                 $commands = $crate->getCommandsToItem($item);
@@ -291,7 +323,7 @@ class InvMenuUtils {
                 $player->sendMessage(
                     TextFormat::YELLOW . "Current Commands (" . $count . "): " . TextFormat::WHITE . (empty($commands) ? "Empty" : implode(",", $commands))
                 );
-    
+
                 $player->sendMessage(Translation::getInstance()->getMessage("COMMAND_SETUP_SET_COMMAND", ["{PREFIX}" => Main::PREFIX]));
             }
 
@@ -303,5 +335,3 @@ class InvMenuUtils {
         $menu->send($player);
     }
 }
-
-?>
