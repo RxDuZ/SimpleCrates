@@ -3,7 +3,6 @@
 namespace rxduz\crates\extension;
 
 use muqsit\invmenu\InvMenu;
-use muqsit\invmenu\type\InvMenuTypeIds;
 use pocketmine\color\Color;
 use pocketmine\console\ConsoleCommandSender;
 use pocketmine\entity\Location;
@@ -16,6 +15,7 @@ use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BlockEventPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\utils\TextFormat;
+use pocketmine\world\Position;
 use rxduz\crates\CrateManager;
 use rxduz\crates\libs\floatingtext\CrateHologramEntity;
 use rxduz\crates\Main;
@@ -76,6 +76,14 @@ class Crate
     public function isOpen(): bool
     {
         return $this->open;
+    }
+
+    /**
+     * @return Position|null
+     */
+    public function getPosition(): Position|null
+    {
+        return Main::getInstance()->getPositionManager()->getPositionByName($this->getName());
     }
 
     /**
@@ -175,11 +183,9 @@ class Crate
      */
     public function setOpen(bool $status): void
     {
-        $positionManager = Main::getInstance()->getPositionManager();
+        $position = $this->getPosition();
 
-        if (!$positionManager->exists($this->name)) return;
-
-        $position = $positionManager->getPositionByName($this->name);
+        if ($position === null) return;
 
         $position->getWorld()->broadcastPacketToViewers($position, BlockEventPacket::create(BlockPosition::fromVector3($position->asVector3()), 1, ($status ? 1 : 0)));
 
@@ -314,7 +320,7 @@ class Crate
 
             $commands = $this->getCommandsToItem($item);
 
-            $drops[] = [
+            $drops[$slot] = [
                 "item" => $item,
                 "type" => (empty($commands) ? "item" : "command"),
                 "commands" => $commands,
@@ -356,20 +362,17 @@ class Crate
             $chances += $crateItem["chance"];
         }
 
-        $menu = InvMenu::create(count($drops) > 27 ? InvMenuTypeIds::TYPE_DOUBLE_CHEST : InvMenuTypeIds::TYPE_CHEST);
+        $menu = InvMenu::create(count($drops) > 27 ? InvMenu::TYPE_DOUBLE_CHEST : InvMenu::TYPE_CHEST);
 
         $menu->setListener(InvMenu::readonly());
         $menu->setName(Translation::getInstance()->getMessage("CRATE_NAME_INVENTORY", ["{CRATE}" => $this->getName()]));
 
-        $slot = 0;
-
-        foreach ($drops as $crateItem) {
-            if ($slot > 53) break; // Maximum supported preview items is 54, meaning lowest chances are not shown.
+        foreach ($drops as $slot => $crateItem) {
             $item = clone $crateItem["item"];
+
             $item->setCustomName(Translation::getInstance()->getMessage("CRATE_ITEM_NAME_INVENTORY", ["{NAME}" => $item->getName(), "{COUNT}" => $item->getCount()]));
             $item->setLore([TextFormat::RESET, Translation::getInstance()->getMessage("CRATE_ITEM_LORE_INVENTORY", ["{CHANCE}" => round(($crateItem["chance"] / $chances) * 100, 2, PHP_ROUND_HALF_UP)]), TextFormat::RESET]);
             $menu->getInventory()->setItem($slot, $item);
-            $slot++;
         }
 
         $menu->send($player);
@@ -434,7 +437,7 @@ class Crate
 
         if (!$pluginConfig["crates"]["preview-items"]) return;
 
-        $cratePosition = Main::getInstance()->getPositionManager()->getPositionByName($this->getName());
+        $cratePosition = $this->getPosition();
 
         if ($this->dropTime === 0) {
             if ($cratePosition !== null and !empty($this->getDrops())) {
@@ -462,7 +465,7 @@ class Crate
 
         if (!$pluginConfig["crates"]["particle"]) return;
 
-        $cratePosition = Main::getInstance()->getPositionManager()->getPositionByName($this->getName());
+        $cratePosition = $this->getPosition();
 
         if ($cratePosition === null) return;
 
@@ -505,7 +508,7 @@ class Crate
 
         $pluginConfig = Main::getInstance()->getDataProvider()->getPluginConfig();
 
-        $cratePosition = Main::getInstance()->getPositionManager()->getPositionByName($this->getName());
+        $cratePosition = $this->getPosition();
 
         if ($cratePosition !== null) {
             $up = ($pluginConfig["crates"]["preview-items"] ? 2.3 : 1.8); // Blocks to up

@@ -9,44 +9,42 @@ use pocketmine\scheduler\Task;
 use pocketmine\Server;
 use pocketmine\world\particle\LavaParticle;
 use rxduz\crates\extension\Crate;
-use rxduz\crates\Main;
 use rxduz\crates\translation\Translation;
 use rxduz\crates\utils\Utils;
 
-class OpenAnimationTask extends Task {
+class OpenAnimationTask extends Task
+{
 
-    public function __construct(private Crate $crate, private Player $player, private int $time, private array $drop){
-
-    }
+    public function __construct(private Crate $crate, private Player $player, private int $time, private array $drop) {}
 
     public function onRun(): void
     {
-        if(!$this->player->isConnected()){
+        if (!$this->player->isConnected()) {
             $this->crate->setOpen(false);
-            
+
             $this->getHandler()->cancel();
 
             return;
         }
 
-        if($this->time === 0){
+        if ($this->time === 0) {
             $drop = $this->drop;
 
             $item = clone $drop["item"];
 
-            if($drop["type"] === "item"){
-                if($this->player->getInventory()->canAddItem($item)){
+            if ($drop["type"] === "item") {
+                if ($this->player->getInventory()->canAddItem($item)) {
                     $this->player->getInventory()->addItem($item);
                 } else {
                     $this->player->dropItem($item);
                 }
             }
-    
-            foreach($drop["commands"] as $dropCommand){
+
+            foreach ($drop["commands"] as $dropCommand) {
                 $this->player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace("{PLAYER}", '"' . $this->player->getName() . '"', $dropCommand));
             }
 
-            foreach($this->crate->getCommands() as $crateCommand){
+            foreach ($this->crate->getCommands() as $crateCommand) {
                 $this->player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace("{PLAYER}", '"' . $this->player->getName() . '"', $crateCommand));
             }
 
@@ -54,7 +52,7 @@ class OpenAnimationTask extends Task {
 
             Utils::playSound($this->player, "random.explode", 20);
 
-            $cratePosition = Main::getInstance()->getPositionManager()->getPositionByName($this->crate->getName());
+            $cratePosition = $this->crate->getPosition();
 
             $x = $cratePosition->getX() + 0.5;
 
@@ -64,7 +62,7 @@ class OpenAnimationTask extends Task {
 
             $radius = 1;
 
-            for($i = 0; $i < 20; $i++){
+            for ($i = 0; $i < 20; $i++) {
                 $cx = $x + ($radius * cos($i));
 
                 $cz = $z + ($radius * sin($i));
@@ -85,7 +83,4 @@ class OpenAnimationTask extends Task {
 
         $this->time--;
     }
-
 }
-
-?>

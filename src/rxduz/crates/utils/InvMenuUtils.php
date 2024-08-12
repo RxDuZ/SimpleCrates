@@ -103,11 +103,9 @@ class InvMenuUtils
                         return $transaction->discard();
                     }
 
-                    $player->removeCurrentWindow();
+                    //$player->getInventory()->clearAll();
 
-                    $player->getInventory()->clearAll();
-
-                    $player->getCursorInventory()->clearAll();
+                    //$player->getCursorInventory()->clearAll();
 
                     self::sendEditCrateItemCommands($player, $crate);
                     break;
@@ -117,8 +115,6 @@ class InvMenuUtils
 
                         return $transaction->discard();
                     }
-
-                    $player->removeCurrentWindow();
 
                     self::sendEditCrateInventory($player, $crate);
                     break;
@@ -230,7 +226,7 @@ class InvMenuUtils
      */
     public static function sendEditCrateInventory(Player $player, Crate $crate): void
     {
-        $menu = InvMenu::create(InvMenu::TYPE_CHEST);
+        $menu = InvMenu::create(count($crate->getDrops()) >= 27 ? InvMenu::TYPE_DOUBLE_CHEST : InvMenu::TYPE_CHEST);
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . $crate->getName() . " Inventory Editor");
 
@@ -251,7 +247,7 @@ class InvMenuUtils
      */
     public static function sendEditCrateItemChance(Player $player, Crate $crate): void
     {
-        $menu = InvMenu::create(InvMenu::TYPE_CHEST);
+        $menu = InvMenu::create(count($crate->getDrops()) > 27 ? InvMenu::TYPE_DOUBLE_CHEST : InvMenu::TYPE_CHEST);
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . $crate->getName() . " Chance Editor");
 
@@ -294,7 +290,7 @@ class InvMenuUtils
      */
     public static function sendEditCrateItemCommands(Player $player, Crate $crate): void
     {
-        $menu = InvMenu::create(InvMenu::TYPE_CHEST);
+        $menu = InvMenu::create(count($crate->getDrops()) > 27 ? InvMenu::TYPE_DOUBLE_CHEST : InvMenu::TYPE_CHEST);
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . $crate->getName() . " Command Editor");
 
