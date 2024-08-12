@@ -8,7 +8,7 @@
 
 ## Prerequisites
 
-- <a href="https://github.com/Muqsit/InvMenu">InvMenu virion</a
+- <a href="https://github.com/Muqsit/InvMenu">InvMenu virion</a>
 - PMMP 5.17.0+
 
 ### Implementations

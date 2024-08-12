@@ -92,7 +92,6 @@ class CrateCommand extends Command
 
                 $sender->sendMessage(Translation::getInstance()->getMessage("CRATE_REMOVED", ["{PREFIX}" => Main::PREFIX, "{CRATE}" => $args[1]]));
                 break;
-            case "editor":
             case "list":
                 $crates = Main::getInstance()->getCrateManager()->getCrates();
 
@@ -110,6 +109,7 @@ class CrateCommand extends Command
 
                 $sender->sendMessage($list);
                 break;
+            case "editor":
             case "edit":
                 if (Main::getInstance()->getCrateManager()->isConfigurator($sender->getName())) {
                     $sender->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
