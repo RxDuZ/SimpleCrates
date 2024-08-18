@@ -9,11 +9,12 @@ use pocketmine\utils\TextFormat;
 use rxduz\crates\command\CrateCommand;
 use rxduz\crates\command\KeyAllCommand;
 use rxduz\crates\command\KeyCommand;
-use rxduz\crates\provider\YamlDataProvider;
+use rxduz\crates\migrator\VersionMigrator;
 use rxduz\crates\position\PositionManager;
 use rxduz\crates\task\CrateUpdateTask;
 use rxduz\crates\task\ParticleUpdateTask;
 use rxduz\crates\translation\Translation;
+use rxduz\crates\utils\ConfigUpdater;
 
 class Main extends PluginBase
 {
@@ -23,14 +24,14 @@ class Main extends PluginBase
     /** @var string */
     public const PREFIX = TextFormat::BOLD . TextFormat::DARK_GRAY . "(" . TextFormat::BLUE . "SimpleCrates" . TextFormat::DARK_GRAY . ")" . TextFormat::RESET . " ";
 
+    /** @var int */
+    public const CONFIG_VERSION = 1;
+
     /** @var CrateManager $crateManager */
     private CrateManager $crateManager;
 
     /** @var PositionManager $positionManager */
     private PositionManager $positionManager;
-
-    /** @var YamlDataProvider $dataProvider */
-    private YamlDataProvider $dataProvider;
 
     protected function onLoad(): void
     {
@@ -49,11 +50,11 @@ class Main extends PluginBase
 
         $this->saveResource("/messages.yml");
 
-        $this->dataProvider = new YamlDataProvider($this);
-
         $this->positionManager = new PositionManager();
 
         $this->crateManager = new CrateManager();
+
+        ConfigUpdater::checkUpdate($this->getConfig(), self::CONFIG_VERSION);
 
         Translation::getInstance()->init();
 
@@ -68,6 +69,10 @@ class Main extends PluginBase
         new ParticleUpdateTask($this);
 
         $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
+
+        if ($this->getConfig()->get("version-migrator", false)) {
+            VersionMigrator::getInstance()->init();
+        }
 
         $this->getLogger()->info(self::PREFIX . TextFormat::GREEN . "plugin enabled successfully!");
     }
@@ -93,13 +98,5 @@ class Main extends PluginBase
     public function getPositionManager(): PositionManager
     {
         return $this->positionManager;
-    }
-
-    /**
-     * @return YamlDataProvider
-     */
-    public function getDataProvider(): YamlDataProvider
-    {
-        return $this->dataProvider;
     }
 }

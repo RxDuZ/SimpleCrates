@@ -1,7 +1,7 @@
 name: SimpleCrates
 main: rxduz\crates\Main
 api: 5.17.0
-version: 2.1
+version: 2.2
 author: "iRxDuZ"
 description: "Crates plugin for your server!"
 virions: ["InvMenu"]

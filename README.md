@@ -35,6 +35,15 @@
 #
 # SimpleCrates config by iRxDuZ ツ
 
+# Do not touch :)
+CONFIG_VERSION: 1
+
+# Version migrator (true = yes false = no)
+# Migrate data from version 1.0 of SimpleCrates.
+# Instructions: Rename the crates.yml file to crates_old.yml from the version 1.0 and turn on the server.
+# When the data has been migrated, disable this option with: false
+version-migrator: false
+
 # Keys configuration
 keys:
   id: "tripwire_hook"
@@ -62,6 +71,7 @@ crates:
 
 ### ✔ Credits
 
-| Authors | Github                              | Lib                                          |
-| ------- | ----------------------------------- | -------------------------------------------- |
-| Muqsit  | [Muqsit](https://github.com/Muqsit) | [InvMenu](https://github.com/Muqsit/InvMenu) |
+| Authors        | Github                                         | Lib                                           |
+| -------------- | ---------------------------------------------- | --------------------------------------------- |
+| Muqsit         | [Muqsit](https://github.com/Muqsit)            | [InvMenu](https://github.com/Muqsit/InvMenu)  |
+| yuko fuyutsuki | [yuko fuyutsuki](https://github.com/fuyutsuki) | [Texter](https://github.com/fuyutsuki/Texter) |

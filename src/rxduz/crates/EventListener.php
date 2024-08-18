@@ -4,15 +4,19 @@ namespace rxduz\crates;
 
 use pocketmine\event\block\BlockBreakEvent;
 use pocketmine\event\entity\EntityItemPickupEvent;
+use pocketmine\event\entity\EntityTeleportEvent;
 use pocketmine\event\entity\ItemSpawnEvent;
 use pocketmine\event\Listener;
 use pocketmine\event\player\PlayerChatEvent;
 use pocketmine\event\player\PlayerInteractEvent;
+use pocketmine\event\player\PlayerJoinEvent;
 use pocketmine\item\StringToItemParser;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\particle\BlockBreakParticle;
 use rxduz\crates\extension\Crate;
+use rxduz\crates\libs\texter\SendType;
+use rxduz\crates\task\SendTextsTask;
 use rxduz\crates\translation\Translation;
 
 class EventListener implements Listener
@@ -28,6 +32,43 @@ class EventListener implements Listener
         if ($entity->getItem()->getNamedTag()->getTag("CrateItem") !== null) {
             $entity->setNameTag(Translation::getInstance()->getMessage("CRATE_ITEM_NAME_INVENTORY", ["{NAME}" => $entity->getItem()->getName(), "{COUNT}" => $entity->getItem()->getCount()]));
             $entity->setNameTagAlwaysVisible();
+        }
+    }
+
+    /**
+     * @param PlayerJoinEvent $ev
+     */
+    public function onPlayerJoin(PlayerJoinEvent $ev): void
+    {
+        $player = $ev->getPlayer();
+
+        $world = $player->getWorld();
+
+        $sendTask = new SendTextsTask($player, $world, SendType::ADD);
+
+        Main::getInstance()->getScheduler()->scheduleDelayedRepeatingTask($sendTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
+    }
+
+    /**
+     * @param EntityTeleportEvent $ev
+     */
+    public function onEntityTeleport(EntityTeleportEvent $ev)
+    {
+        $entity = $ev->getEntity();
+
+        if ($entity instanceof Player) {
+            $from = $ev->getFrom()->getWorld();
+
+            $to = $ev->getTo()->getWorld();
+
+            $removeTask = new SendTextsTask($entity, $from, SendType::REMOVE);
+
+            $addTask = new SendTextsTask($entity, $to, SendType::ADD);
+
+            $scheduler = Main::getInstance()->getScheduler();
+
+            $scheduler->scheduleDelayedRepeatingTask($removeTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
+            $scheduler->scheduleDelayedRepeatingTask($addTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
         }
     }
 
@@ -91,7 +132,7 @@ class EventListener implements Listener
 
                     $crate->setFloatingText($msg);
 
-                    $crate->updateHologram();
+                    $crate->updateFloatingText(true, SendType::EDIT);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
@@ -181,7 +222,7 @@ class EventListener implements Listener
 
         $item = $player->getInventory()->getItemInHand();
 
-        $pluginConfig = Main::getInstance()->getDataProvider()->getPluginConfig()["crates"];
+        $pluginConfig = Main::getInstance()->getConfig()->get("crates");
 
         $stringToItem = StringToItemParser::getInstance();
 
@@ -196,7 +237,7 @@ class EventListener implements Listener
 
                     Main::getInstance()->getPositionManager()->createPosition($crate->getName(), $block->getPosition());
 
-                    $crate->updateHologram();
+                    $crate->updateFloatingText(true, SendType::ADD);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 

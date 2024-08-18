@@ -5,7 +5,7 @@ namespace rxduz\crates\extension;
 use muqsit\invmenu\InvMenu;
 use pocketmine\color\Color;
 use pocketmine\console\ConsoleCommandSender;
-use pocketmine\entity\Location;
+use pocketmine\entity\Entity;
 use pocketmine\item\Item;
 use pocketmine\Server;
 use pocketmine\player\Player;
@@ -17,7 +17,8 @@ use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
 use rxduz\crates\CrateManager;
-use rxduz\crates\libs\floatingtext\CrateHologramEntity;
+use rxduz\crates\libs\texter\FloatingText;
+use rxduz\crates\libs\texter\SendType;
 use rxduz\crates\Main;
 use rxduz\crates\task\OpenAnimationTask;
 use rxduz\crates\translation\Translation;
@@ -37,8 +38,8 @@ class Crate
     /** @var int $dropTime */
     private int $dropTime;
 
-    /** @var CrateHologramEntity|null $entityHologram */
-    private CrateHologramEntity|null $entityHologram;
+    /** @var FloatingText|null $floatingTextHologram */
+    private FloatingText|null $floatingTextHologram;
 
     /** @var int $particleCounter */
     private int $particleCounter;
@@ -49,9 +50,9 @@ class Crate
 
         $this->open = false;
 
-        $this->dropTime = Main::getInstance()->getDataProvider()->getPluginConfig()["crates"]["drop-item-time"] ?? 3;
+        $this->dropTime = Main::getInstance()->getConfig()->getNested("crates.drop-item-time", 5);
 
-        $this->entityHologram = null;
+        $this->floatingTextHologram = null;
 
         $this->particleCounter = 0;
 
@@ -59,7 +60,7 @@ class Crate
             $this->items[$slot] = Utils::legacyStringJsonDeserialize($data);
         }
 
-        $this->updateHologram();
+        $this->updateFloatingText();
     }
 
     /**
@@ -84,6 +85,14 @@ class Crate
     public function getPosition(): Position|null
     {
         return Main::getInstance()->getPositionManager()->getPositionByName($this->getName());
+    }
+
+    /**
+     * @return FloatingText|null
+     */
+    public function getFloatingTextHologram(): FloatingText|null
+    {
+        return $this->floatingTextHologram;
     }
 
     /**
@@ -198,9 +207,9 @@ class Crate
      */
     public function giveKey(Player $player, int $amount = 0): void
     {
-        $pluginConfig = Main::getInstance()->getDataProvider()->getPluginConfig();
+        $pluginConfig = Main::getInstance()->getConfig()->get("keys");
 
-        $item = StringToItemParser::getInstance()->parse($pluginConfig["keys"]["id"]);
+        $item = StringToItemParser::getInstance()->parse($pluginConfig["id"]);
 
         if ($item === null) {
             $item = VanillaItems::PAPER();
@@ -208,9 +217,9 @@ class Crate
 
         $item->setCount($amount);
 
-        $item->setCustomName(TextFormat::colorize(str_replace("{CRATE}", $this->getName(), $pluginConfig["keys"]["name"])));
+        $item->setCustomName(TextFormat::colorize(str_replace("{CRATE}", $this->getName(), $pluginConfig["name"])));
 
-        $item->setLore([TextFormat::colorize(str_replace("{CRATE}", $this->getName(), $pluginConfig["keys"]["lore"]))]);
+        $item->setLore([TextFormat::colorize(str_replace("{CRATE}", $this->getName(), $pluginConfig["lore"]))]);
 
         $item->getNamedTag()->setString("KeyType", $this->getName());
 
@@ -227,12 +236,7 @@ class Crate
      */
     public function isValidKey(Item $item): bool
     {
-        $stringToItem = StringToItemParser::getInstance();
-
-        $id = $stringToItem->lookupAliases($item)[0] ?? "air";
-
-        return ($id === Main::getInstance()->getDataProvider()->getPluginConfig()["keys"]["id"] and
-            $item->getNamedTag()->getTag("KeyType") !== null and
+        return ($item->getNamedTag()->getTag("KeyType") !== null and
             $item->getNamedTag()->getString("KeyType") === $this->getName()
         );
     }
@@ -396,7 +400,7 @@ class Crate
             return;
         }
 
-        $pluginConfig = Main::getInstance()->getDataProvider()->getPluginConfig()["crates"];
+        $pluginConfig = Main::getInstance()->getConfig()->get("crates");
 
         $drop = $this->getDrop();
 
@@ -433,9 +437,9 @@ class Crate
 
     public function updatePreview(): void
     {
-        $pluginConfig = Main::getInstance()->getDataProvider()->getPluginConfig();
+        $pluginConfig = Main::getInstance()->getConfig()->get("crates");
 
-        if (!$pluginConfig["crates"]["preview-items"]) return;
+        if (!$pluginConfig["preview-items"]) return;
 
         $cratePosition = $this->getPosition();
 
@@ -453,7 +457,7 @@ class Crate
                 $cratePosition->getWorld()->dropItem($cratePosition->add(0.5, 1, 0.5), $item, new Vector3(0, 0, 0));
             }
 
-            $this->dropTime = $pluginConfig["crates"]["drop-item-time"] ?? 3;
+            $this->dropTime = $pluginConfig["drop-item-time"] ?? 3;
         }
 
         $this->dropTime--;
@@ -461,9 +465,9 @@ class Crate
 
     public function updateParticles(): void
     {
-        $pluginConfig = Main::getInstance()->getDataProvider()->getPluginConfig();
+        $particlesEnabled = Main::getInstance()->getConfig()->getNested("crates.particle", true);
 
-        if (!$pluginConfig["crates"]["particle"]) return;
+        if (!$particlesEnabled) return;
 
         $cratePosition = $this->getPosition();
 
@@ -500,54 +504,44 @@ class Crate
         }
     }
 
-    public function updateHologram(): void
+    /**
+     * @param bool $updatePlayers
+     * @param SendType $sendType
+     */
+    public function updateFloatingText(bool $updatePlayers = false, SendType $sendType = SendType::ADD): void
     {
-        if ($this->getFloatingText() === "") return;
+        $position = $this->getPosition();
 
-        $found = null;
+        if ($this->getFloatingText() === "" or $position === null) return;
 
-        $pluginConfig = Main::getInstance()->getDataProvider()->getPluginConfig();
+        $previewItems = Main::getInstance()->getConfig()->getNested("crates.preview-items");
 
-        $cratePosition = $this->getPosition();
+        $blocksToUp = ($previewItems ? 2.1 : 1);
 
-        if ($cratePosition !== null) {
-            $up = ($pluginConfig["crates"]["preview-items"] ? 2.3 : 1.8); // Blocks to up
-
-            $vector = $cratePosition->asVector3()->add(0.5, $up, 0.5);
-
-            foreach ($cratePosition->getWorld()->getEntities() as $entity) {
-                if ($entity instanceof CrateHologramEntity and $entity->crateName !== null and $entity->crateName === $this->getName()) {
-                    $found = $entity; // If exists ignore create
-                }
+        if ($updatePlayers and $this->floatingTextHologram !== null) {
+            if ($sendType === SendType::EDIT) {
+                $this->floatingTextHologram->setText($this->getFloatingText()); // Update text :)
             }
 
-            if ($found === null) {
-                $entityHologram = new CrateHologramEntity(Location::fromObject($vector, $cratePosition->getWorld()));
-
-                $entityHologram->crateName = $this->getName();
-
-                $entityHologram->spawnToAll();
-
-                $this->entityHologram = $entityHologram;
-            } else {
-                $this->entityHologram = $found;
-
-                $this->entityHologram->teleport($vector);
+            foreach ($position->getWorld()->getViewersForPosition($position->asVector3()) as $player) {
+                $this->floatingTextHologram->sendToPlayer($player, $sendType);
             }
+        } else {
+            $this->floatingTextHologram = new FloatingText($position->asVector3()->add(0.5, $blocksToUp, 0.5), $this->getFloatingText(), Entity::nextRuntimeId());
         }
-
-        if ($this->entityHologram !== null) $this->entityHologram->setNameTag($this->getFloatingText());
     }
 
     public function close(): void
     {
-        if ($this->entityHologram !== null) {
-            $this->entityHologram->close();
-        }
-
         Utils::clearItems($this->getName());
 
-        $this->entityHologram = null;
+        $position = $this->getPosition();
+
+        if ($position !== null) {
+            foreach ($position->getWorld()->getViewersForPosition($position->asVector3()) as $player) {
+                $this->floatingTextHologram->sendToPlayer($player, SendType::REMOVE);
+            }
+        }
 
         $this->open = false;
     }

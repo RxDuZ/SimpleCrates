@@ -2,14 +2,10 @@
 
 namespace rxduz\crates;
 
-use pocketmine\entity\EntityDataHelper;
-use pocketmine\entity\EntityFactory;
-use pocketmine\nbt\tag\CompoundTag;
 use pocketmine\utils\Config;
 use pocketmine\world\Position;
 use pocketmine\world\World;
 use rxduz\crates\extension\Crate;
-use rxduz\crates\libs\floatingtext\CrateHologramEntity;
 use rxduz\crates\Main;
 use rxduz\crates\utils\Configurator;
 
@@ -57,15 +53,7 @@ class CrateManager
 
     public function __construct()
     {
-        $this->data = Main::getInstance()->getDataProvider()->getConfiguration("/crates");
-
-        EntityFactory::getInstance()->register(
-            CrateHologramEntity::class,
-            function (World $world, CompoundTag $nbt): CrateHologramEntity {
-                return new CrateHologramEntity(EntityDataHelper::parseLocation($nbt, $world), null, $nbt);
-            },
-            ['CrateHologramEntity']
-        );
+        $this->data = new Config(Main::getInstance()->getDataFolder() . "/crates.yml", Config::YAML);
 
         foreach ($this->data->getAll() as $name => $value) {
             $this->crates[$name] = new Crate(
@@ -85,6 +73,16 @@ class CrateManager
     public function getCrates(): array
     {
         return $this->crates;
+    }
+
+    /**
+     * @return Crate[]
+     */
+    public function getCratesByWorld(World $world): array
+    {
+        return array_filter($this->crates, function (Crate $crate) use ($world): bool {
+            return ($crate->getPosition() !== null and $crate->getPosition()->getWorld()->getFolderName() === $world->getFolderName());
+        });
     }
 
     /**
