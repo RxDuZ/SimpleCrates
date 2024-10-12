@@ -2,145 +2,42 @@
 
 namespace rxduz\crates\command;
 
+use CortexPE\Commando\BaseCommand;
 use pocketmine\command\CommandSender;
-use pocketmine\command\Command;
-use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
-use rxduz\crates\extension\Crate;
-use rxduz\crates\translation\Translation;
-use rxduz\crates\utils\InvMenuUtils;
+use rxduz\crates\command\subcommand\CreateSubCommand;
+use rxduz\crates\command\subcommand\DeleteSubCommand;
+use rxduz\crates\command\subcommand\EditorSubCommand;
+use rxduz\crates\command\subcommand\ListSubCommand;
 use rxduz\crates\Main;
 
-class CrateCommand extends Command
+class CrateCommand extends BaseCommand
 {
 
-    public function __construct()
+    public function __construct(private Main $plugin)
     {
-        parent::__construct("crate", "SimpleCrates command by @zRxDuZ", null, ["cr"]);
-
-        $this->setPermission("simplecrates.command.crate");
-
-        $this->setPermissionMessage(TextFormat::RED . "You do not have permissions to use this command!");
+        parent::__construct($plugin, 'crate', 'SimpleCrates command by @zRxDuZ', ['cr']);
     }
 
-    public function execute(CommandSender $sender, string $commandLabel, array $args): void
+    public function prepare(): void
     {
-        if (!$sender instanceof Player) {
-            $sender->sendMessage(TextFormat::RED . "Use this command in-game");
+        $this->setPermission('simplecrates.command.create');
 
-            return;
-        }
+        $this->registerSubCommand(new CreateSubCommand('create', 'Create new crate', ['make']));
 
-        if (!$sender->hasPermission("simplecrates.command.crate")) {
-            $sender->sendMessage($this->getPermissionMessage());
+        $this->registerSubCommand(new DeleteSubCommand('delete', 'Delete crate', ['remove']));
 
-            return;
-        }
+        $this->registerSubCommand(new ListSubCommand('list', 'View crate list'));
 
-        if (!isset($args[0])) {
-            $sender->sendMessage(TextFormat::RED . "Use /" . $commandLabel . " help");
+        $this->registerSubCommand(new EditorSubCommand('editor', 'Open crate menu editor', ['edit']));
+    }
 
-            return;
-        }
-
-        switch ($args[0]) {
-            case "create":
-            case "make":
-                if (Main::getInstance()->getCrateManager()->isConfigurator($sender->getName())) {
-                    $sender->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-
-                    return;
-                }
-
-                if (!isset($args[1])) {
-                    $sender->sendMessage(TextFormat::RED . "Use /" . $commandLabel . " create <type>");
-
-                    return;
-                }
-
-                if (Main::getInstance()->getCrateManager()->exists($args[1])) {
-                    $sender->sendMessage(Translation::getInstance()->getMessage("COMMAND_CRATE_ALREADY_EXISTS"));
-
-                    return;
-                }
-
-                Main::getInstance()->getCrateManager()->createCrate($args[1]);
-
-                $sender->sendMessage(Translation::getInstance()->getMessage("CRATE_CREATED", ["{PREFIX}" => Main::PREFIX, "{CRATE}" => $args[1]]));
-                break;
-            case "remove":
-            case "delete":
-                if (Main::getInstance()->getCrateManager()->isConfigurator($sender->getName())) {
-                    $sender->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-
-                    return;
-                }
-
-                if (!isset($args[1])) {
-                    $sender->sendMessage(TextFormat::RED . "Use /" . $commandLabel . " remove <type>");
-
-                    return;
-                }
-
-                if (!Main::getInstance()->getCrateManager()->exists($args[1])) {
-                    $sender->sendMessage(Translation::getInstance()->getMessage("COMMAND_CRATE_NOT_EXISTS"));
-
-                    return;
-                }
-
-                Main::getInstance()->getCrateManager()->removeCrate($args[1]);
-
-                $sender->sendMessage(Translation::getInstance()->getMessage("CRATE_REMOVED", ["{PREFIX}" => Main::PREFIX, "{CRATE}" => $args[1]]));
-                break;
-            case "list":
-                $crates = Main::getInstance()->getCrateManager()->getCrates();
-
-                if (empty($crates)) {
-                    $sender->sendMessage(TextFormat::RED . "There are no crates registered.");
-
-                    return;
-                }
-
-                $list = TextFormat::MINECOIN_GOLD . "Crates:" . TextFormat::EOL;
-
-                foreach ($crates as $crate) {
-                    $list .= TextFormat::GRAY . "- " . TextFormat::GREEN . $crate->getName() . TextFormat::EOL;
-                }
-
-                $sender->sendMessage($list);
-                break;
-            case "editor":
-            case "edit":
-                if (Main::getInstance()->getCrateManager()->isConfigurator($sender->getName())) {
-                    $sender->sendMessage(Translation::getInstance()->getMessage("COMMAND_CURRENTLY_SETUP"));
-
-                    return;
-                }
-
-                if (!isset($args[1])) {
-                    $sender->sendMessage(TextFormat::RED . "Use /" . $commandLabel . " editor <type>");
-
-                    return;
-                }
-
-                $crate = Main::getInstance()->getCrateManager()->getCrateByName($args[1]);
-
-                if (!$crate instanceof Crate) {
-                    $sender->sendMessage(Translation::getInstance()->getMessage("COMMAND_CRATE_NOT_EXISTS"));
-
-                    return;
-                }
-
-                InvMenuUtils::sendCrateEditorMenu($sender, $crate);
-                break;
-            case "help":
-            default:
-                $sender->sendMessage(Main::PREFIX . TextFormat::RESET . TextFormat::BLUE . "commands:");
-                $sender->sendMessage(TextFormat::YELLOW . "Use /" . $commandLabel . " create <type> " . TextFormat::WHITE . "Create Crate");
-                $sender->sendMessage(TextFormat::YELLOW . "Use /" . $commandLabel . " remove <type> " . TextFormat::WHITE . "Remove Crate");
-                $sender->sendMessage(TextFormat::YELLOW . "Use /" . $commandLabel . " list " . TextFormat::WHITE . "View crate list");
-                $sender->sendMessage(TextFormat::YELLOW . "Use /" . $commandLabel . " editor <type> " . TextFormat::WHITE . "Crate Editor");
-                break;
-        }
+    public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
+    {
+        $sender->sendMessage(Main::PREFIX . TextFormat::RESET . TextFormat::BLUE . 'commands:');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' create <type> ' . TextFormat::WHITE . 'Create Crate');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' remove <type> ' . TextFormat::WHITE . 'Remove Crate');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' list ' . TextFormat::WHITE . 'View crate list');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' editor <type> ' . TextFormat::WHITE . 'Crate Editor');
     }
 }

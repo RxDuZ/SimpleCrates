@@ -2,6 +2,8 @@
 
 namespace rxduz\crates;
 
+use CortexPE\Commando\BaseCommand;
+use CortexPE\Commando\PacketHooker;
 use muqsit\invmenu\InvMenuHandler;
 use pocketmine\plugin\PluginBase;
 use pocketmine\utils\SingletonTrait;
@@ -22,7 +24,7 @@ class Main extends PluginBase
     use SingletonTrait;
 
     /** @var string */
-    public const PREFIX = TextFormat::BOLD . TextFormat::DARK_GRAY . "(" . TextFormat::BLUE . "SimpleCrates" . TextFormat::DARK_GRAY . ")" . TextFormat::RESET . " ";
+    public const PREFIX = TextFormat::BOLD . TextFormat::DARK_GRAY . '(' . TextFormat::BLUE . 'SimpleCrates' . TextFormat::DARK_GRAY . ')' . TextFormat::RESET . ' ';
 
     /** @var int */
     public const CONFIG_VERSION = 1;
@@ -40,15 +42,34 @@ class Main extends PluginBase
 
     protected function onEnable(): void
     {
+        foreach (
+            [
+                'Commando' => BaseCommand::class,
+                'InvMenu' => InvMenuHandler::class,
+            ] as $virion => $class
+        ) {
+            if (!class_exists($class)) {
+                $this->getLogger()->error($virion . ' virion not found. Please download the needed virions and try again.');
+
+                $this->getServer()->getPluginManager()->disablePlugin($this);
+
+                return;
+            }
+        }
+
         if (!InvMenuHandler::isRegistered()) {
             InvMenuHandler::register($this);
         }
 
+        if (!PacketHooker::isRegistered()) {
+            PacketHooker::register($this);
+        }
+
         $this->saveDefaultConfig();
 
-        $this->saveResource("/crates.yml");
+        $this->saveResource('/crates.yml');
 
-        $this->saveResource("/messages.yml");
+        $this->saveResource('/messages.yml');
 
         $this->positionManager = new PositionManager();
 
@@ -58,10 +79,10 @@ class Main extends PluginBase
 
         Translation::getInstance()->init();
 
-        $this->getServer()->getCommandMap()->registerAll("SimpleCrates", [
-            new KeyCommand(),
-            new KeyAllCommand(),
-            new CrateCommand()
+        $this->getServer()->getCommandMap()->registerAll('SimpleCrates', [
+            new KeyCommand($this),
+            new KeyAllCommand($this),
+            new CrateCommand($this)
         ]);
 
         new CrateUpdateTask($this);
@@ -70,18 +91,14 @@ class Main extends PluginBase
 
         $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
 
-        if ($this->getConfig()->get("version-migrator", false)) {
-            VersionMigrator::getInstance()->init();
-        }
-
-        $this->getLogger()->info(self::PREFIX . TextFormat::GREEN . "plugin enabled successfully!");
+        $this->getLogger()->info(self::PREFIX . TextFormat::GREEN . 'plugin enabled successfully made by iRxDuZ.');
     }
 
     protected function onDisable(): void
     {
         $this->getCrateManager()->closeAll();
 
-        $this->getLogger()->info(self::PREFIX . TextFormat::RED . "plugin disabled!");
+        $this->getLogger()->info(self::PREFIX . TextFormat::RED . 'plugin disabled.');
     }
 
     /**

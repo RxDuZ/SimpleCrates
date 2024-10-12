@@ -8,39 +8,51 @@ use pocketmine\world\World;
 use rxduz\crates\extension\Crate;
 use rxduz\crates\Main;
 use rxduz\crates\utils\Configurator;
+use rxduz\crates\utils\Utils;
 
 class CrateManager
 {
 
     /** @var array */
     public const DEFAULT_DATA = [
-        "drops" => [],
-        "commands" => [],
-        "floating-text" => "",
-        "particle-id" => -1,
-        "particle-color" => "0:255:0"
+        'drops' => [],
+        'commands' => [],
+        'floating-text' => '',
+        'particle-id' => -1,
+        'particle-color' => '0:255:0'
+    ];
+
+    /** @var array */
+    public const DEFAULT_ITEM_DATA = [
+        'item' => '',
+        'type' => 'item',
+        'commands' => [],
+        'chance' => 10
     ];
 
     /** @var string */
-    public const CONFIGURATOR_SET_CRATE = "set_crate";
+    public const CONFIGURATOR_SET_CRATE = 'set_crate';
 
     /** @var string */
-    public const CONFIGURATOR_ITEM_CHANCE = "item_chance";
+    public const CONFIGURATOR_ITEM_CHANGE = 'item_change';
 
     /** @var string */
-    public const CONFIGURATOR_ITEM_COMMAND = "item_command";
+    public const CONFIGURATOR_ITEM_CHANCE = 'item_chance';
 
     /** @var string */
-    public const CONFIGURATOR_CRATE_HOLOGRAMS = "crate_holograms";
+    public const CONFIGURATOR_ITEM_COMMAND = 'item_command';
 
     /** @var string */
-    public const CONFIGURATOR_CRATE_COMMANDS = "crate_commands";
+    public const CONFIGURATOR_CRATE_HOLOGRAMS = 'crate_holograms';
 
     /** @var string */
-    public const CONFIGURATOR_CRATE_PARTICLE = "crate_particle";
+    public const CONFIGURATOR_CRATE_COMMANDS = 'crate_commands';
 
     /** @var string */
-    public const CONFIGURATOR_CRATE_PARTICLE_COLOR = "crate_particle_color";
+    public const CONFIGURATOR_CRATE_PARTICLE = 'crate_particle';
+
+    /** @var string */
+    public const CONFIGURATOR_CRATE_PARTICLE_COLOR = 'crate_particle_color';
 
     /** @var Config $data */
     private Config $data;
@@ -48,27 +60,42 @@ class CrateManager
     /** @var array $setters */
     private array $setters = [];
 
-    /** @var Crate[] $crates */
+    /** @var array<string, Crate> $crates */
     private array $crates = [];
 
     public function __construct()
     {
-        $this->data = new Config(Main::getInstance()->getDataFolder() . "/crates.yml", Config::YAML);
+        $this->data = new Config(Main::getInstance()->getDataFolder() . '/crates.yml', Config::YAML);
 
         foreach ($this->data->getAll() as $name => $value) {
-            $this->crates[$name] = new Crate(
+            $drops = [];
+
+            foreach ($value['drops'] ?? [] as $slot => $drop) {
+                $chance = $drop['chance'] ?? 10;
+
+                $commands = $drop['commands'] ?? [];
+
+                $drops[$slot] = [
+                    'item' => Utils::legacyStringJsonDeserialize($drop['item']),
+                    'type' => (empty($commands) ? 'item' : 'command'),
+                    'commands' => $commands,
+                    'chance' => $chance
+                ];
+            }
+
+            $this->crates[strtolower($name)] = new Crate(
                 $name,
-                $value["drops"] ?? [],
-                $value["commands"] ?? [],
-                $value["floating-text"] ?? "",
-                $value["particle-id"] ?? -1,
-                $value["particle-color"] ?? "0:255:0"
+                $drops,
+                $value['commands'] ?? [],
+                $value['floating-text'] ?? '',
+                $value['particle-id'] ?? -1,
+                $value['particle-color'] ?? '0:255:0'
             );
         }
     }
 
     /**
-     * @return Crate[]
+     * @return array<string, Crate>
      */
     public function getCrates(): array
     {
@@ -76,7 +103,7 @@ class CrateManager
     }
 
     /**
-     * @return Crate[]
+     * @return array<string, Crate>
      */
     public function getCratesByWorld(World $world): array
     {
@@ -91,7 +118,7 @@ class CrateManager
      */
     public function exists(string $name): bool
     {
-        return isset($this->crates[$name]);
+        return isset($this->crates[strtolower($name)]);
     }
 
     /**
@@ -117,42 +144,40 @@ class CrateManager
      */
     public function getCrateByName(string $name): Crate|null
     {
-        return $this->crates[$name] ?? null;
+        return $this->crates[strtolower($name)] ?? null;
     }
 
     /**
-     * @param string $crateName
+     * @param string $name
      */
-    public function createCrate(string $crateName): void
+    public function createCrate(string $name): void
     {
         $data = self::DEFAULT_DATA;
 
-        $this->data->set($crateName, $data);
+        $this->save($name, $data);
 
-        $this->data->save();
-
-        $this->crates[$crateName] = new Crate($crateName, $data["drops"], $data["commands"], $data["floating-text"], $data["particle-id"], $data["particle-color"]);
+        $this->crates[strtolower($name)] = new Crate($name, $data['drops'], $data['commands'], $data['floating-text'], $data['particle-id'], $data['particle-color']);
     }
 
     /**
-     * @param string $crateName
+     * @param string $name
      */
-    public function removeCrate(string $crateName): void
+    public function removeCrate(string $name): void
     {
-        $crate = $this->getCrateByName($crateName);
+        $crate = $this->getCrateByName($name);
 
-        if (Main::getInstance()->getPositionManager()->exists($crateName)) {
-            Main::getInstance()->getPositionManager()->removePosition($crateName);
+        if (Main::getInstance()->getPositionManager()->exists($name)) {
+            Main::getInstance()->getPositionManager()->removePosition($name);
         }
 
         if ($crate !== null) {
             $crate->close();
+
+            $this->data->remove($name);
+            $this->data->save();
+
+            unset($this->crates[strtolower($name)]);
         }
-
-        $this->data->remove($crateName);
-        $this->data->save();
-
-        unset($this->crates[$crateName]);
     }
 
     /**
@@ -192,12 +217,12 @@ class CrateManager
     }
 
     /**
-     * @param string $crateName
+     * @param string $name
      * @param array $data
      */
-    public function save(string $crateName, array $data)
+    public function save(string $name, array $data)
     {
-        $this->data->set($crateName, $data);
+        $this->data->set($name, $data);
 
         $this->data->save();
     }

@@ -5,65 +5,74 @@ namespace rxduz\crates\utils;
 use pocketmine\item\Item;
 use rxduz\crates\extension\Crate;
 
-class Configurator {
+class Configurator
+{
 
-    public function __construct(private string $name, private Crate $crate, private string $type, private int $slot = 0, private Item|null $item = null)
-    {
-
-    }
+    public function __construct(private string $name, private Crate $crate, private string $type, private int $slot = 0) {}
 
     /**
      * @return string
      */
-    public function getUserName(): string {
+    public function getUserName(): string
+    {
         return $this->name;
     }
 
     /**
      * @return Crate
      */
-    public function getCrate(): Crate {
+    public function getCrate(): Crate
+    {
         return $this->crate;
     }
 
     /**
      * @return string
      */
-    public function getType(): string {
+    public function getType(): string
+    {
         return $this->type;
+    }
+
+    /**
+     * @param Item $item
+     */
+    public function setItem(Item $item): void
+    {
+        $drops = $this->crate->getDrops();
+
+        if (array_key_exists($this->slot, $drops)) {
+            $drops[$this->slot]['item'] = $item;
+        }
+
+        $this->crate->setDrops($drops);
     }
 
     /**
      * @param int $chance
      */
-    public function setChance(int $chance): void {
-        $item = $this->crate->setChanceToItem($this->item, $chance);
+    public function setChance(int $chance): void
+    {
+        $drops = $this->crate->getDrops();
 
-        $this->item = $item;
+        if (array_key_exists($this->slot, $drops)) {
+            $drops[$this->slot]['chance'] = $chance;
+        }
+
+        $this->crate->setDrops($drops);
     }
 
     /**
      * @param array $command
      */
-    public function setCommand(array $command): void {
-        $item = $this->crate->setCommandsToItem($this->item, $command);
+    public function setCommand(array $command): void
+    {
+        $drops = $this->crate->getDrops();
 
-        $this->item = $item;
-    }
-
-    /**
-     * Save config
-     */
-    public function save(): void {
-        if($this->item instanceof Item){
-            $items = $this->crate->getItems();
-
-            $items[$this->slot] = $this->item;
-
-            $this->crate->setItems($items);
+        if (array_key_exists($this->slot, $drops)) {
+            $drops[$this->slot]['commands'] = $command;
         }
+
+        $this->crate->setDrops($drops);
     }
-
 }
-
-?>

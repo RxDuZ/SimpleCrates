@@ -30,9 +30,9 @@ class OpenAnimationTask extends Task
         if ($this->time === 0) {
             $drop = $this->drop;
 
-            $item = clone $drop["item"];
+            $item = clone $drop['item'];
 
-            if ($drop["type"] === "item") {
+            if ($drop['type'] === 'item') {
                 if ($this->player->getInventory()->canAddItem($item)) {
                     $this->player->getInventory()->addItem($item);
                 } else {
@@ -40,17 +40,17 @@ class OpenAnimationTask extends Task
                 }
             }
 
-            foreach ($drop["commands"] as $dropCommand) {
-                $this->player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace("{PLAYER}", '"' . $this->player->getName() . '"', $dropCommand));
+            foreach ($drop['commands'] as $dropCommand) {
+                $this->player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace('{PLAYER}', '"' . $this->player->getName() . '"', $dropCommand));
             }
 
             foreach ($this->crate->getCommands() as $crateCommand) {
-                $this->player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace("{PLAYER}", '"' . $this->player->getName() . '"', $crateCommand));
+                $this->player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace('{PLAYER}', '"' . $this->player->getName() . '"', $crateCommand));
             }
 
-            $this->player->sendTip(Translation::getInstance()->getMessage("CRATE_OPEN_REWARD", ["{CRATE}" => $this->crate->getName(), "{REWARD}" => $item->getName()]));
+            $this->player->sendTip(Translation::getInstance()->getMessage('CRATE_OPEN_REWARD', ['{CRATE}' => $this->crate->getName(), '{REWARD}' => $item->getName()]));
 
-            Utils::playSound($this->player, "random.explode", 20);
+            Utils::playSound($this->player, 'random.explode', 20);
 
             $cratePosition = $this->crate->getPosition();
 
@@ -76,9 +76,9 @@ class OpenAnimationTask extends Task
 
             $this->getHandler()->cancel();
         } else {
-            $this->player->sendTitle(Translation::getInstance()->getMessage("CRATE_ANIMATION_TITLE", ["{TIME}" => $this->time]), Translation::getInstance()->getMessage("CRATE_ANIMATION_SUBTITLE", ["{TIME}" => $this->time]), 20, 20, 20);
+            $this->player->sendTitle(Translation::getInstance()->getMessage('CRATE_ANIMATION_TITLE', ['{TIME}' => $this->time]), Translation::getInstance()->getMessage('CRATE_ANIMATION_SUBTITLE', ['{TIME}' => $this->time]), 20, 20, 20);
 
-            Utils::playSound($this->player, "note.pling", 20, $this->time);
+            Utils::playSound($this->player, 'note.pling', 20, $this->time);
         }
 
         $this->time--;

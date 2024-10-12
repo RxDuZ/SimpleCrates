@@ -1,5 +1,5 @@
 # DO NOT TOUCH!
-MESSAGES_VERSION: 1.2
+MESSAGES_VERSION: 1.5
 
 PLAYER_NOT_ONLINE: "&cPlayer is not online"
 
@@ -25,7 +25,9 @@ COMMAND_CRATE_POSITION_ALREADY_EXISTS: "&cCrate position already exists."
 COMMAND_CRATE_POSITION_NOT_EXISTS: "&cCrate position does not exists."
 COMMAND_CURRENTLY_SETUP: "&cYou already in configuration mode."
 
+COMMAND_SETUP_CANCEL: "&aYou canceled the configuration successfully."
 COMMAND_SETUP_SET_BLOCK: "&aTouch a valid block to register the crate."
+COMMAND_SETUP_SET_CHANGE: "&aUse the item in your hand and write &econfirm &ato confirm or &ecancel &ato cancel."
 COMMAND_SETUP_SET_CHANCE: "&aWrite chance in the chat."
 COMMAND_SETUP_SET_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: give money {PLAYER} 100,give {PLAYER} diamond_sword."
 COMMAND_SETUP_CRATE_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: say {PLAYER} open crate,give {PLAYER} diamond_sword."
@@ -33,6 +35,9 @@ COMMAND_SETUP_CRATE_HOLOGRAM: "&aWrite the hologram text in the chat.\n&eNote: &
 COMMAND_SETUP_CRATE_PARTICLE: "&aWrite the particle ID in the chat or write: rgb for the colored particle..\n&eExample: 8 (Flame particle)"
 COMMAND_SETUP_CRATE_PARTICLE_COLOR: "&aWrite the color rgb in the chat.\n&eExample: &f0:255:0 (Green color)"
 
+SETUP_SUCCESS_ADD_REWARD: "&aNew item reward added successfully."
+SETUP_SUCCESS_DELETED_REWARD: "&aReward ({SLOT}) deleted successfully."
+SETUP_SUCCESS_CHANGE: "&aThe item was change to {ITEM}"
 SETUP_SUCCESS_CHANCE: "&aThe chance was set to {VALUE}"
 SETUP_SUCCESS_COMMAND: "&aThe commands was set to {VALUE}"
 SETUP_SUCCESS_HOLOGRAM: "&aThe hologram was set to {VALUE}"

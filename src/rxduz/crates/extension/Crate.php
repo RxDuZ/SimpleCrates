@@ -10,7 +10,6 @@ use pocketmine\item\Item;
 use pocketmine\Server;
 use pocketmine\player\Player;
 use pocketmine\item\StringToItemParser;
-use pocketmine\item\VanillaItems;
 use pocketmine\math\Vector3;
 use pocketmine\network\mcpe\protocol\BlockEventPacket;
 use pocketmine\network\mcpe\protocol\types\BlockPosition;
@@ -28,10 +27,6 @@ use rxduz\crates\utils\Utils;
 
 class Crate
 {
-
-    /** @var Item[] $items */
-    private array $items;
-
     /** @var bool $open */
     private bool $open;
 
@@ -46,19 +41,13 @@ class Crate
 
     public function __construct(private string $name, private array $drops, private array $commands, private string $floatingText, private int $particleId, private string $particleColor)
     {
-        $this->items = [];
-
         $this->open = false;
 
-        $this->dropTime = Main::getInstance()->getConfig()->getNested("crates.drop-item-time", 5);
+        $this->dropTime = Main::getInstance()->getConfig()->getNested('crates.drop-item-time', 5);
 
         $this->floatingTextHologram = null;
 
         $this->particleCounter = 0;
-
-        foreach ($this->drops as $slot => $data) {
-            $this->items[$slot] = Utils::legacyStringJsonDeserialize($data);
-        }
 
         $this->updateFloatingText();
     }
@@ -96,21 +85,39 @@ class Crate
     }
 
     /**
-     * @return Item[]
+     * @param array $drops
      */
-    public function getItems(): array
+    public function setDrops(array $drops): void
     {
-        return $this->items;
+        $this->drops = $drops;
+
+        $this->save();
     }
 
     /**
-     * @param array $items
+     * @return array
      */
-    public function setItems(array $items): void
+    public function getDrops(): array
     {
-        $this->items = $items;
+        return $this->drops;
+    }
 
-        $this->save();
+    /**
+     * @return array
+     */
+    public function getDrop(): array
+    {
+        $dropTable = [];
+
+        foreach ($this->getDrops() as $drop) {
+            for ($i = 0; $i < $drop['chance']; $i++) {
+                $dropTable[] = $drop;
+            }
+        }
+
+        $randomDrop = $dropTable[array_rand($dropTable)];
+
+        return $randomDrop;
     }
 
     /**
@@ -172,7 +179,7 @@ class Crate
      */
     public function getParticleColor(): array
     {
-        $data = explode(":", $this->particleColor);
+        $data = explode(':', $this->particleColor);
 
         return $data;
     }
@@ -202,26 +209,33 @@ class Crate
     }
 
     /**
-     * @param Player $player
      * @param int $amount
+     * @return Item
      */
-    public function giveKey(Player $player, int $amount = 0): void
+    public function getKey(int $amount = 1): Item
     {
-        $pluginConfig = Main::getInstance()->getConfig()->get("keys");
+        $pluginConfig = Main::getInstance()->getConfig()->get('keys');
 
-        $item = StringToItemParser::getInstance()->parse($pluginConfig["id"]);
-
-        if ($item === null) {
-            $item = VanillaItems::PAPER();
-        }
+        $item = StringToItemParser::getInstance()->parse($pluginConfig['id']);
 
         $item->setCount($amount);
 
-        $item->setCustomName(TextFormat::colorize(str_replace("{CRATE}", $this->getName(), $pluginConfig["name"])));
+        $item->setCustomName(TextFormat::colorize(str_replace('{CRATE}', $this->getName(), $pluginConfig['name'])));
 
-        $item->setLore([TextFormat::colorize(str_replace("{CRATE}", $this->getName(), $pluginConfig["lore"]))]);
+        $item->setLore([TextFormat::colorize(str_replace('{CRATE}', $this->getName(), $pluginConfig['lore']))]);
 
-        $item->getNamedTag()->setString("KeyType", $this->getName());
+        $item->getNamedTag()->setString('KeyType', $this->getName());
+
+        return $item;
+    }
+
+    /**
+     * @param Player $player
+     * @param int $amount
+     */
+    public function giveKey(Player $player, int $amount = 1): void
+    {
+        $item = $this->getKey($amount);
 
         if ($player->getInventory()->canAddItem($item)) {
             $player->getInventory()->addItem($item);
@@ -236,121 +250,9 @@ class Crate
      */
     public function isValidKey(Item $item): bool
     {
-        return ($item->getNamedTag()->getTag("KeyType") !== null and
-            $item->getNamedTag()->getString("KeyType") === $this->getName()
+        return ($item->getNamedTag()->getTag('KeyType') !== null and
+            $item->getNamedTag()->getString('KeyType') === $this->getName()
         );
-    }
-
-    /**
-     * @param Item $item
-     * @param int $chance
-     * @return Item
-     */
-    public function setChanceToItem(Item $item, int $chance): Item
-    {
-        $item->getNamedTag()->setInt("chance", $chance);
-
-        return $item;
-    }
-
-    /**
-     * @param Item $item
-     * @return int
-     */
-    public function getChanceToItem(Item $item): int
-    {
-        if ($item->getNamedTag()->getTag("chance") !== null) {
-            return $item->getNamedTag()->getInt("chance");
-        }
-
-        return 10;
-    }
-
-    /**
-     * @param Item $item
-     * @param array $commands
-     * @return Item
-     */
-    public function setCommandsToItem(Item $item, array $commands): Item
-    {
-        $str = implode(",", $commands);
-
-        $item->getNamedTag()->setString("type", "command");
-
-        $item->getNamedTag()->setString("commands", $str);
-
-        return $item;
-    }
-
-    /**
-     * @param Item $item
-     * @return array
-     */
-    public function getCommandsToItem(Item $item): array
-    {
-        if ($item->getNamedTag()->getTag("type") !== null and $item->getNamedTag()->getString("type") === "command") {
-            $str = $item->getNamedTag()->getString("commands", "");
-
-            return explode(",", $str);
-        }
-
-        return [];
-    }
-
-    /**
-     * @param Item $item
-     * @return bool
-     */
-    public function isValidItem(Item $other): bool
-    {
-        foreach ($this->items as $slot => $item) {
-            if ($item->equalsExact($other)) {
-                return true;
-            }
-        }
-
-        return false;
-    }
-
-    /**
-     * @return array
-     */
-    public function getDrops(): array
-    {
-        $drops = [];
-
-        foreach ($this->items as $slot => $item) {
-            $chance = $this->getChanceToItem($item);
-
-            $commands = $this->getCommandsToItem($item);
-
-            $drops[$slot] = [
-                "item" => $item,
-                "type" => (empty($commands) ? "item" : "command"),
-                "commands" => $commands,
-                "chance" => $chance
-            ];
-        }
-
-        return $drops;
-    }
-
-    /**
-     * @return array
-     */
-    public function getDrop(): array
-    {
-        $dropTable = [];
-
-        foreach ($this->getDrops() as $drop) {
-            for ($i = 0; $i < $drop["chance"]; $i++) {
-                $dropTable[] = $drop;
-            }
-        }
-
-        $randomDrop = $dropTable[array_rand($dropTable)];
-
-        return $randomDrop;
     }
 
     /**
@@ -363,19 +265,19 @@ class Crate
         $chances = 0;
 
         foreach ($drops as $crateItem) {
-            $chances += $crateItem["chance"];
+            $chances += $crateItem['chance'];
         }
 
         $menu = InvMenu::create(count($drops) > 27 ? InvMenu::TYPE_DOUBLE_CHEST : InvMenu::TYPE_CHEST);
 
         $menu->setListener(InvMenu::readonly());
-        $menu->setName(Translation::getInstance()->getMessage("CRATE_NAME_INVENTORY", ["{CRATE}" => $this->getName()]));
+        $menu->setName(Translation::getInstance()->getMessage('CRATE_NAME_INVENTORY', ['{CRATE}' => $this->getName()]));
 
         foreach ($drops as $slot => $crateItem) {
-            $item = clone $crateItem["item"];
+            $item = clone $crateItem['item'];
 
-            $item->setCustomName(Translation::getInstance()->getMessage("CRATE_ITEM_NAME_INVENTORY", ["{NAME}" => $item->getName(), "{COUNT}" => $item->getCount()]));
-            $item->setLore([TextFormat::RESET, Translation::getInstance()->getMessage("CRATE_ITEM_LORE_INVENTORY", ["{CHANCE}" => round(($crateItem["chance"] / $chances) * 100, 2, PHP_ROUND_HALF_UP)]), TextFormat::RESET]);
+            $item->setCustomName(Translation::getInstance()->getMessage('CRATE_ITEM_NAME_INVENTORY', ['{NAME}' => $item->getName(), '{COUNT}' => $item->getCount()]));
+            $item->setLore([TextFormat::RESET, Translation::getInstance()->getMessage('CRATE_ITEM_LORE_INVENTORY', ['{CHANCE}' => round(($crateItem['chance'] / $chances) * 100, 2, PHP_ROUND_HALF_UP)]), TextFormat::RESET]);
             $menu->getInventory()->setItem($slot, $item);
         }
 
@@ -389,34 +291,35 @@ class Crate
     public function openCrate(Player $player, Item $key): void
     {
         if (empty($this->getDrops())) {
-            $player->sendTip(Translation::getInstance()->getMessage("CRATE_EMPTY_DROPS"));
+            $player->sendTip(Translation::getInstance()->getMessage('CRATE_EMPTY_DROPS'));
 
             return;
         }
 
         if ($this->isOpen()) {
-            $player->sendTip(Translation::getInstance()->getMessage("CRATE_CURRENTLY_OPEN"));
+            $player->sendTip(Translation::getInstance()->getMessage('CRATE_CURRENTLY_OPEN'));
 
             return;
         }
 
-        $pluginConfig = Main::getInstance()->getConfig()->get("crates");
+        $pluginConfig = Main::getInstance()->getConfig()->get('crates');
 
         $drop = $this->getDrop();
 
-        $item = clone $drop["item"];
+        /** @var Item $item */
+        $item = clone $drop['item'];
 
         $player->getInventory()->removeItem($key->setCount(1));
 
-        if ($pluginConfig["animation"]) {
+        if ($pluginConfig['animation']) {
             $this->setOpen(true);
 
-            Main::getInstance()->getScheduler()->scheduleRepeatingTask(new OpenAnimationTask($this, $player, $pluginConfig["duration"], $drop), 8);
+            Main::getInstance()->getScheduler()->scheduleRepeatingTask(new OpenAnimationTask($this, $player, $pluginConfig['duration'], $drop), 8);
 
             return;
         }
 
-        if ($drop["type"] === "item") {
+        if ($drop['type'] === 'item') {
             if ($player->getInventory()->canAddItem($item)) {
                 $player->getInventory()->addItem($item);
             } else {
@@ -424,22 +327,22 @@ class Crate
             }
         }
 
-        foreach ($drop["commands"] as $dropCommand) {
-            $player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace("{PLAYER}", '"' . $player->getName() . '"', $dropCommand));
+        foreach ($drop['commands'] as $dropCommand) {
+            $player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace('{PLAYER}', '"' . $player->getName() . '"', $dropCommand));
         }
 
         foreach ($this->getCommands() as $crateCommand) {
-            $player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace("{PLAYER}", '"' . $player->getName() . '"', $crateCommand));
+            $player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace('{PLAYER}', '"' . $player->getName() . '"', $crateCommand));
         }
 
-        $player->sendTip(Translation::getInstance()->getMessage("CRATE_OPEN_REWARD", ["{CRATE}" => $this->getName(), "{REWARD}" => $item->getName()]));
+        $player->sendTip(Translation::getInstance()->getMessage('CRATE_OPEN_REWARD', ['{CRATE}' => $this->getName(), '{REWARD}' => $item->getName()]));
     }
 
     public function updatePreview(): void
     {
-        $pluginConfig = Main::getInstance()->getConfig()->get("crates");
+        $pluginConfig = Main::getInstance()->getConfig()->get('crates');
 
-        if (!$pluginConfig["preview-items"]) return;
+        if (!$pluginConfig['preview-items']) return;
 
         $cratePosition = $this->getPosition();
 
@@ -448,16 +351,16 @@ class Crate
                 $drop = $this->getDrops()[array_rand($this->getDrops())];
 
                 /** @var Item $item */
-                $item = clone $drop["item"];
+                $item = clone $drop['item'];
 
                 Utils::clearItems($this->getName());
 
-                $item->getNamedTag()->setString("CrateItem", $this->getName());
+                $item->getNamedTag()->setString('CrateItem', $this->getName());
 
                 $cratePosition->getWorld()->dropItem($cratePosition->add(0.5, 1, 0.5), $item, new Vector3(0, 0, 0));
             }
 
-            $this->dropTime = $pluginConfig["drop-item-time"] ?? 3;
+            $this->dropTime = $pluginConfig['drop-item-time'] ?? 3;
         }
 
         $this->dropTime--;
@@ -465,7 +368,7 @@ class Crate
 
     public function updateParticles(): void
     {
-        $particlesEnabled = Main::getInstance()->getConfig()->getNested("crates.particle", true);
+        $particlesEnabled = Main::getInstance()->getConfig()->getNested('crates.particle', true);
 
         if (!$particlesEnabled) return;
 
@@ -512,13 +415,23 @@ class Crate
     {
         $position = $this->getPosition();
 
-        if ($this->getFloatingText() === "" or $position === null) return;
+        if ($this->getFloatingText() === '' or $position === null) return;
 
-        $previewItems = Main::getInstance()->getConfig()->getNested("crates.preview-items");
+        $previewItems = Main::getInstance()->getConfig()->getNested('crates.preview-items');
 
         $blocksToUp = ($previewItems ? 2.1 : 1);
 
-        if ($updatePlayers and $this->floatingTextHologram !== null) {
+        if ($updatePlayers) {
+            if ($this->floatingTextHologram === null) {
+                $this->floatingTextHologram = new FloatingText($position->asVector3()->add(0.5, $blocksToUp, 0.5), $this->getFloatingText(), Entity::nextRuntimeId());
+
+                foreach ($position->getWorld()->getViewersForPosition($position->asVector3()) as $player) {
+                    $this->floatingTextHologram->sendToPlayer($player, SendType::ADD);
+                }
+
+                return;
+            }
+
             if ($sendType === SendType::EDIT) {
                 $this->floatingTextHologram->setText($this->getFloatingText()); // Update text :)
             }
@@ -539,7 +452,7 @@ class Crate
 
         if ($position !== null) {
             foreach ($position->getWorld()->getViewersForPosition($position->asVector3()) as $player) {
-                $this->floatingTextHologram->sendToPlayer($player, SendType::REMOVE);
+                if ($this->floatingTextHologram !== null) $this->floatingTextHologram->sendToPlayer($player, SendType::REMOVE);
             }
         }
 
@@ -550,14 +463,22 @@ class Crate
     {
         $data = CrateManager::DEFAULT_DATA;
 
-        foreach ($this->items as $slot => $item) {
-            $data["drops"][$slot] = Utils::jsonSerialize($item);
+        $drops = [];
+
+        foreach ($this->drops as $slot => $drop) {
+            $drops[$slot] = [
+                'item' => Utils::jsonSerialize($drop['item']),
+                'type' => $drop['type'],
+                'commands' => $drop['commands'],
+                'chance' => $drop['chance']
+            ];
         }
 
-        $data["commands"] = $this->commands;
-        $data["floating-text"] = $this->floatingText;
-        $data["particle-id"] = $this->particleId;
-        $data["particle-color"] = $this->particleColor;
+        $data['drops'] = $drops;
+        $data['commands'] = $this->commands;
+        $data['floating-text'] = $this->floatingText;
+        $data['particle-id'] = $this->particleId;
+        $data['particle-color'] = $this->particleColor;
 
         Main::getInstance()->getCrateManager()->save($this->name, $data);
     }

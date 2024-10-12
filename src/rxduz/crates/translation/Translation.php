@@ -12,11 +12,11 @@ class Translation
 
 	use SingletonTrait;
 
-	/** @var int */
-	public const VERSION = 1.2;
+	/** @var float */
+	public const VERSION = 1.5;
 
 	/** @var string */
-	public const EMPTY_MESSAGE = TextFormat::RED . "This message does not exist or was deleted";
+	public const EMPTY_MESSAGE = TextFormat::RED . 'This message does not exist or was deleted';
 
 	/** @var Config|null $data */
 	private Config|null $data = null;
@@ -26,16 +26,16 @@ class Translation
 
 	public function init()
 	{
-		$this->data = new Config(Main::getInstance()->getDataFolder() . "/messages.yml", Config::YAML);
+		$this->data = new Config(Main::getInstance()->getDataFolder() . '/messages.yml', Config::YAML);
 
-		if ((!$this->data->exists("MESSAGES_VERSION")) or ($this->data->get("MESSAGES_VERSION") !== self::VERSION)) {
-			rename(Main::getInstance()->getDataFolder() . "messages.yml", Main::getInstance()->getDataFolder() . "messages_old.yml");
+		if ((!$this->data->exists('MESSAGES_VERSION')) or ($this->data->get('MESSAGES_VERSION') !== self::VERSION)) {
+			rename(Main::getInstance()->getDataFolder() . 'messages.yml', Main::getInstance()->getDataFolder() . 'messages_old.yml');
 
-			Main::getInstance()->saveResource("/messages.yml");
+			Main::getInstance()->saveResource('/messages.yml');
 
-			Main::getInstance()->getLogger()->notice(Main::PREFIX . "(messages.yml) The version does not match so it was updated.");
+			Main::getInstance()->getLogger()->notice(Main::PREFIX . '(messages.yml) The version does not match so it was updated.');
 
-			$this->data = new Config(Main::getInstance()->getDataFolder() . "/messages.yml", Config::YAML);
+			$this->data = new Config(Main::getInstance()->getDataFolder() . '/messages.yml', Config::YAML);
 		}
 
 		$this->messages = $this->data->getAll();

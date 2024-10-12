@@ -29,8 +29,8 @@ class EventListener implements Listener
     {
         $entity = $ev->getEntity();
 
-        if ($entity->getItem()->getNamedTag()->getTag("CrateItem") !== null) {
-            $entity->setNameTag(Translation::getInstance()->getMessage("CRATE_ITEM_NAME_INVENTORY", ["{NAME}" => $entity->getItem()->getName(), "{COUNT}" => $entity->getItem()->getCount()]));
+        if ($entity->getItem()->getNamedTag()->getTag('CrateItem') !== null) {
+            $entity->setNameTag(Translation::getInstance()->getMessage('CRATE_ITEM_NAME_INVENTORY', ['{NAME}' => $entity->getItem()->getName(), '{COUNT}' => $entity->getItem()->getCount()]));
             $entity->setNameTagAlwaysVisible();
         }
     }
@@ -52,7 +52,7 @@ class EventListener implements Listener
     /**
      * @param EntityTeleportEvent $ev
      */
-    public function onEntityTeleport(EntityTeleportEvent $ev)
+    public function onEntityTeleport(EntityTeleportEvent $ev): void
     {
         $entity = $ev->getEntity();
 
@@ -60,6 +60,8 @@ class EventListener implements Listener
             $from = $ev->getFrom()->getWorld();
 
             $to = $ev->getTo()->getWorld();
+
+            if ($from->getFolderName() === $to->getFolderName()) return;
 
             $removeTask = new SendTextsTask($entity, $from, SendType::REMOVE);
 
@@ -83,11 +85,40 @@ class EventListener implements Listener
 
         if ($configurator !== null) {
             switch ($configurator->getType()) {
+                case CrateManager::CONFIGURATOR_ITEM_CHANGE:
+                    $item = $player->getInventory()->getItemInHand();
+
+                    $msg = $ev->getMessage();
+
+                    if (strtolower($msg) === 'confirm') {
+                        if ($item === null) {
+                            $player->sendMessage(TextFormat::RED . 'This item is not valid.');
+
+                            $ev->cancel();
+
+                            return;
+                        }
+
+                        $configurator->setItem($item);
+
+                        Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
+
+                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CHANGE', ['{ITEM}' => $item->getName()]));
+
+                        $ev->cancel();
+                    } else if (strtolower($msg) === 'cancel') {
+                        Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
+
+                        $player->sendMessage(Translation::getInstance()->getMessage('COMMAND_SETUP_CANCEL'));
+
+                        $ev->cancel();
+                    }
+                    break;
                 case CrateManager::CONFIGURATOR_ITEM_CHANCE:
                     $msg = $ev->getMessage();
 
                     if (!is_numeric($msg)) {
-                        $player->sendMessage(TextFormat::RED . "Use a numeric value for chance");
+                        $player->sendMessage(TextFormat::RED . 'Use a numeric value for chance');
 
                         $ev->cancel();
 
@@ -95,7 +126,7 @@ class EventListener implements Listener
                     }
 
                     if (intval($msg) > 100) {
-                        $player->sendMessage(TextFormat::RED . "The maximum value is 100");
+                        $player->sendMessage(TextFormat::RED . 'The maximum value is 100');
 
                         $ev->cancel();
 
@@ -103,30 +134,28 @@ class EventListener implements Listener
                     }
 
                     $configurator->setChance(intval($msg));
-                    $configurator->save();
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage("SETUP_SUCCESS_CHANCE", ["{VALUE}" => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CHANCE', ['{VALUE}' => $msg]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_ITEM_COMMAND:
                     $msg = $ev->getMessage();
 
-                    $commands = explode(",", $msg);
+                    $commands = explode(',', $msg);
 
                     $configurator->setCommand($commands);
-                    $configurator->save();
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage("SETUP_SUCCESS_COMMAND", ["{VALUE}" => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_COMMAND', ['{VALUE}' => $msg]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_CRATE_HOLOGRAMS:
-                    $msg = str_replace("{LINE}", TextFormat::EOL, TextFormat::colorize($ev->getMessage()));
+                    $msg = str_replace('{LINE}', TextFormat::EOL, TextFormat::colorize($ev->getMessage()));
 
                     $crate = $configurator->getCrate();
 
@@ -136,32 +165,32 @@ class EventListener implements Listener
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage("SETUP_SUCCESS_HOLOGRAM", ["{VALUE}" => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_HOLOGRAM', ['{VALUE}' => $msg]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_CRATE_COMMANDS:
                     $msg = $ev->getMessage();
 
-                    $commands = explode(",", $msg);
+                    $commands = explode(',', $msg);
 
                     $configurator->getCrate()->setCommands($commands);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage("SETUP_SUCCESS_CRATE_COMMAND", ["{VALUE}" => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_COMMAND', ['{VALUE}' => $msg]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_CRATE_PARTICLE:
                     $msg = $ev->getMessage();
 
-                    if (is_string($msg) and strtolower($msg) === "rgb") {
+                    if (is_string($msg) and strtolower($msg) === 'rgb') {
                         $configurator->getCrate()->setParticleId(-1);
 
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                        $player->sendMessage(Translation::getInstance()->getMessage("SETUP_SUCCESS_CRATE_PARTICLE", ["{VALUE}" => $msg]));
+                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE', ['{VALUE}' => $msg]));
                     } else if (is_numeric($msg)) {
                         $id = intval($msg);
 
@@ -173,9 +202,9 @@ class EventListener implements Listener
 
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                        $player->sendMessage(Translation::getInstance()->getMessage("SETUP_SUCCESS_CRATE_PARTICLE", ["{VALUE}" => $msg]));
+                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE', ['{VALUE}' => $msg]));
                     } else {
-                        $player->sendMessage(TextFormat::RED . "Use a numeric value for ID");
+                        $player->sendMessage(TextFormat::RED . 'Use a numeric value for ID');
                     }
 
                     $ev->cancel();
@@ -187,7 +216,7 @@ class EventListener implements Listener
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage("SETUP_SUCCESS_CRATE_PARTICLE_COLOR", ["{VALUE}" => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE_COLOR', ['{VALUE}' => $msg]));
 
                     $ev->cancel();
                     break;
@@ -206,9 +235,7 @@ class EventListener implements Listener
 
         $crate = Main::getInstance()->getCrateManager()->getCrateByPosition($block->getPosition());
 
-        if ($crate instanceof Crate) {
-            $ev->cancel();
-        }
+        if ($crate instanceof Crate) $ev->cancel();
     }
 
     /**
@@ -222,16 +249,16 @@ class EventListener implements Listener
 
         $item = $player->getInventory()->getItemInHand();
 
-        $pluginConfig = Main::getInstance()->getConfig()->get("crates");
+        $pluginConfig = Main::getInstance()->getConfig()->get('crates');
 
         $stringToItem = StringToItemParser::getInstance();
 
-        $id = $stringToItem->lookupAliases($block->asItem())[0] ?? "air";
+        $id = $stringToItem->lookupAliases($block->asItem())[0] ?? 'air';
 
         if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
             $configurator = Main::getInstance()->getCrateManager()->getConfiguration($player->getName());
 
-            if ($ev->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK and $configurator->getType() === CrateManager::CONFIGURATOR_SET_CRATE and in_array($id, $pluginConfig["blocks"])) {
+            if ($ev->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK and $configurator->getType() === CrateManager::CONFIGURATOR_SET_CRATE and in_array($id, $pluginConfig['blocks'])) {
                 if (Main::getInstance()->getCrateManager()->getCrateByPosition($block->getPosition()) === null) {
                     $crate = $configurator->getCrate();
 
@@ -241,15 +268,15 @@ class EventListener implements Listener
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage("CRATE_SET_BLOCK", [
-                        "{PREFIX}" => Main::PREFIX,
-                        "{CRATE}" => $crate->getName()
+                    $player->sendMessage(Translation::getInstance()->getMessage('CRATE_SET_BLOCK', [
+                        '{PREFIX}' => Main::PREFIX,
+                        '{CRATE}' => $crate->getName()
                     ]));
 
                     $ev->cancel();
                 }
             }
-        } else if (in_array($id, $pluginConfig["blocks"])) {
+        } else if (in_array($id, $pluginConfig['blocks'])) {
             $crate = Main::getInstance()->getCrateManager()->getCrateByPosition($block->getPosition());
 
             if ($crate instanceof Crate) {
@@ -265,7 +292,7 @@ class EventListener implements Listener
             }
         }
 
-        if ($item->getNamedTag()->getTag("KeyType") !== null) $ev->cancel();
+        if ($item->getNamedTag()->getTag('KeyType') !== null) $ev->cancel();
     }
 
     /**
@@ -277,6 +304,6 @@ class EventListener implements Listener
 
         $item = $ev->getItem();
 
-        if ($player instanceof Player and $item->getNamedTag()->getTag("CrateItem") !== null) $ev->cancel();
+        if ($player instanceof Player and $item->getNamedTag()->getTag('CrateItem') !== null) $ev->cancel();
     }
 }
