@@ -227,10 +227,12 @@ class InvMenuUtils
 
             $item = $transaction->getItemClicked();
 
+            $itemClickedWith = $transaction->getItemClickedWith();
+
             if ($item->getTypeId() === VanillaItems::APPLE()->getTypeId()) {
                 $drop = CrateManager::DEFAULT_ITEM_DATA;
 
-                $drop['item'] = VanillaItems::APPLE();
+                $drop['item'] = ($itemClickedWith->isNull() ? VanillaItems::APPLE() : $itemClickedWith);
 
                 $contents = $crate->getDrops();
 
@@ -242,7 +244,7 @@ class InvMenuUtils
 
                 $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_ADD_REWARD'));
 
-                $player->removeCurrentWindow();
+                Utils::playSound($player, 'random.orb');
             } else if ($item->getTypeId() === VanillaItems::EMERALD()->getTypeId()) {
                 self::sendInventoryChangeItemMenu($player, $crate);
             } else if ($item->getTypeId() === VanillaItems::COAL()->getTypeId()) {
@@ -293,7 +295,7 @@ class InvMenuUtils
             return $transaction->discard();
         });
 
-        foreach ($crate->getDrops() as $id => $drop) {
+        foreach ($crate->getDrops() as $slot => $drop) {
             /** @var Item|null */
             $item = $drop['item'] ?? null;
 
@@ -301,9 +303,9 @@ class InvMenuUtils
                 $item = VanillaItems::APPLE();
             }
 
-            $item->getNamedTag()->setInt('slot', $id);
+            $item->getNamedTag()->setInt('slot', $slot);
 
-            $menu->getInventory()->setItem($id, $item);
+            $menu->getInventory()->setItem($slot, $item);
         }
 
         $menu->send($player);
@@ -319,30 +321,45 @@ class InvMenuUtils
 
         $menu->setName(TextFormat::BOLD . TextFormat::GOLD . $crate->getName() . ' Remove Inventory Item');
 
-        $menu->setListener(function (InvMenuTransaction $transaction) use ($crate): InvMenuTransactionResult {
+        $menu->setListener(function (InvMenuTransaction $transaction) use ($menu, $crate): InvMenuTransactionResult {
             $player = $transaction->getPlayer();
 
             $item = $transaction->getItemClicked();
 
             if ($item->getNamedTag()->getTag('slot') !== null) {
-                $id = $item->getNamedTag()->getInt('slot');
+                $slot = $item->getNamedTag()->getInt('slot');
 
                 $drops = $crate->getDrops();
 
-                if (array_key_exists($id, $drops)) {
-                    unset($drops[$id]);
+                if (array_key_exists($slot, $drops)) {
+                    unset($drops[$slot]);
                 }
 
                 $crate->setDrops($drops);
 
-                $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_DELETED_REWARD', ['{SLOT}' => strval($id)]));
+                $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_DELETED_REWARD', ['{SLOT}' => strval($slot)]));
 
-                $player->removeCurrentWindow();
+                Utils::playSound($player, 'note.bass');
+
+                self::setInventoryRemoveItems($menu, $crate);
             }
             return $transaction->discard();
         });
 
-        foreach ($crate->getDrops() as $id => $drop) {
+        self::setInventoryRemoveItems($menu, $crate);
+
+        $menu->send($player);
+    }
+
+    /**
+     * @param InvMenu $menu
+     * @param Crate $crate
+     */
+    public static function setInventoryRemoveItems(InvMenu $menu, Crate $crate): void
+    {
+        $menu->getInventory()->clearAll();
+
+        foreach ($crate->getDrops() as $slot => $drop) {
             /** @var Item|null */
             $item = $drop['item'] ?? null;
 
@@ -350,12 +367,10 @@ class InvMenuUtils
                 $item = VanillaItems::APPLE();
             }
 
-            $item->getNamedTag()->setInt('slot', $id);
+            $item->getNamedTag()->setInt('slot', $slot);
 
-            $menu->getInventory()->setItem($id, $item);
+            $menu->getInventory()->setItem($slot, $item);
         }
-
-        $menu->send($player);
     }
 
     /**
@@ -395,7 +410,7 @@ class InvMenuUtils
             return $transaction->discard();
         });
 
-        foreach ($crate->getDrops() as $id => $drop) {
+        foreach ($crate->getDrops() as $slot => $drop) {
             /** @var Item|null */
             $item = $drop['item'] ?? null;
 
@@ -403,9 +418,9 @@ class InvMenuUtils
                 $item = VanillaItems::APPLE();
             }
 
-            $item->getNamedTag()->setInt('slot', $id);
+            $item->getNamedTag()->setInt('slot', $slot);
 
-            $menu->getInventory()->setItem($id, $item);
+            $menu->getInventory()->setItem($slot, $item);
         }
 
         $menu->send($player);
@@ -452,7 +467,7 @@ class InvMenuUtils
             return $transaction->discard();
         });
 
-        foreach ($crate->getDrops() as $id => $drop) {
+        foreach ($crate->getDrops() as $slot => $drop) {
             /** @var Item|null */
             $item = $drop['item'] ?? null;
 
@@ -460,9 +475,9 @@ class InvMenuUtils
                 $item = VanillaItems::APPLE();
             }
 
-            $item->getNamedTag()->setInt('slot', $id);
+            $item->getNamedTag()->setInt('slot', $slot);
 
-            $menu->getInventory()->setItem($id, $item);
+            $menu->getInventory()->setItem($slot, $item);
         }
 
         $menu->send($player);
