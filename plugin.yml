@@ -4,6 +4,7 @@ api: 5.19.0
 version: 3.0.0
 author: "iRxDuZ"
 description: "Crates plugin for your server!"
+softdepend: ["VanillaElytra"]
 virions: ["InvMenu", "Commando"]
 
 permissions:

@@ -212,6 +212,24 @@ class EventListener implements Listener
                 case CrateManager::CONFIGURATOR_CRATE_PARTICLE_COLOR:
                     $msg = $ev->getMessage();
 
+                    $args = explode(':', $msg);
+
+                    if (!isset($args[0], $args[1], $args[2])) {
+                        $player->sendMessage(TextFormat::RED . 'Arguments are missing, example: 255:0:0');
+
+                        $ev->cancel();
+
+                        return;
+                    }
+
+                    if (!is_numeric($args[0]) or !is_numeric($args[1]) or !is_numeric($args[2])) {
+                        $player->sendMessage(TextFormat::RED . 'Use numeric value in the RGB format');
+
+                        $ev->cancel();
+
+                        return;
+                    }
+
                     $configurator->getCrate()->setParticleColor($msg);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
