@@ -42,6 +42,6 @@ class CrateCommand extends BaseCommand
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' remove <type> ' . TextFormat::WHITE . 'Remove Crate');
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' list ' . TextFormat::WHITE . 'View crate list');
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' editor <type> ' . TextFormat::WHITE . 'Crate Editor');
-        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' renameitem <name> ' . TextFormat::WHITE . 'Rename an item');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' <name|lore> <text> ' . TextFormat::WHITE . 'Rename an item ' . TextFormat::GRAY . '(Note: To skip a line in the lore use {LINE})');
     }
 }

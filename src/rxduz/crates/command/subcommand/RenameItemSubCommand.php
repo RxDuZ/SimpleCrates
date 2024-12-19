@@ -67,7 +67,7 @@ class RenameItemSubCommand extends BaseSubCommand
                 break;
             case 'help':
             default:
-                $sender->sendMessage(TextFormat::RED . 'Use /cr renameitem <name|lore> <name>');
+                $sender->sendMessage(TextFormat::RED . 'Use /cr renameitem <name|lore> <text>');
 
                 $sender->sendMessage(TextFormat::GRAY . 'Note: To skip a line in the lore use {LINE}');
                 break;
