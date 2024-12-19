@@ -59,15 +59,16 @@ crates:
 
 ## Permissions
 
-| Permissions                   | Description                      | Default |
-| ----------------------------- | -------------------------------- | ------- |
-| `simplecrates.command.crate`  | Allow to use /crate main command | `true`  |
-| `simplecrates.command.create` | Allow to create new crate        | `op`    |
-| `simplecrates.command.delete` | Allow to delete crate            | `op`    |
-| `simplecrates.command.list`   | Allow to view crate list         | `op`    |
-| `simplecrates.command.editor` | Allow to Open crate menu editor  | `op`    |
-| `simplecrates.command.key`    | Allow to use /key command        | `op`    |
-| `simplecrates.command.keyall` | Allow to use /keyall command     | `op`    |
+| Permissions                       | Description                      | Default |
+| --------------------------------- | -------------------------------- | ------- |
+| `simplecrates.command.crate`      | Allow to use /crate main command | `true`  |
+| `simplecrates.command.create`     | Allow to create new crate        | `op`    |
+| `simplecrates.command.delete`     | Allow to delete crate            | `op`    |
+| `simplecrates.command.list`       | Allow to view crate list         | `op`    |
+| `simplecrates.command.editor`     | Allow to Open crate menu editor  | `op`    |
+| `simplecrates.command.renameitem` | Allow to Rename an item          | `op`    |
+| `simplecrates.command.key`        | Allow to use /key command        | `op`    |
+| `simplecrates.command.keyall`     | Allow to use /keyall command     | `op`    |
 
 ### ✔ Credits
 

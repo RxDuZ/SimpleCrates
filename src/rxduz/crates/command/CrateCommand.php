@@ -9,6 +9,7 @@ use rxduz\crates\command\subcommand\CreateSubCommand;
 use rxduz\crates\command\subcommand\DeleteSubCommand;
 use rxduz\crates\command\subcommand\EditorSubCommand;
 use rxduz\crates\command\subcommand\ListSubCommand;
+use rxduz\crates\command\subcommand\RenameItemSubCommand;
 use rxduz\crates\Main;
 
 class CrateCommand extends BaseCommand
@@ -30,6 +31,8 @@ class CrateCommand extends BaseCommand
         $this->registerSubCommand(new ListSubCommand('list', 'View crate list'));
 
         $this->registerSubCommand(new EditorSubCommand('editor', 'Open crate menu editor', ['edit']));
+
+        $this->registerSubCommand(new RenameItemSubCommand('renameitem', 'Rename an item'));
     }
 
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
@@ -39,5 +42,6 @@ class CrateCommand extends BaseCommand
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' remove <type> ' . TextFormat::WHITE . 'Remove Crate');
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' list ' . TextFormat::WHITE . 'View crate list');
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' editor <type> ' . TextFormat::WHITE . 'Crate Editor');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' renameitem <name> ' . TextFormat::WHITE . 'Rename an item');
     }
 }
