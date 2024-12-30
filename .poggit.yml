@@ -1,0 +1,16 @@
+--- # Poggit-CI Manifest. Open the CI at https://poggit.pmmp.io/ci/RxDuZ/SimpleCrates
+build-by-default: true
+branches:
+- main
+projects:
+  SimpleCrates:
+    path: ""
+    icon: "img/SimpleCrates.png"
+    libs:
+      - src: muqsit/InvMenu/InvMenu
+        version: ^4.6.5
+        branch: pm5
+      - src: ACM-PocketMine-MP/Commando/Commando
+        version: ^3.2.1
+        branch: PM5
+...
