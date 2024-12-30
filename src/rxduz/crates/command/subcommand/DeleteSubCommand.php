@@ -13,7 +13,7 @@ use rxduz\crates\command\arguments\CrateArgument;
 class DeleteSubCommand extends BaseSubCommand
 {
 
-    public const ARGUMENT_CRATE = 'crate';
+    public const ARGUMENT_CRATE = 'crateName';
 
     public function prepare(): void
     {

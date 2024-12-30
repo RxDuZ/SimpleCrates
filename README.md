@@ -23,6 +23,16 @@
 - [x] Animations when opening the crate (can be disabled in config.yml)
 - [x] Configurable key
 
+## Installation & Setup
+
+1. Install the plugin from [Poggit](https://poggit.pmmp.io/ci/RxDuZ/SimpleCrates/~).
+2. (Optional) Configure `config.yml` customize the key and options available in the crate.
+3. Restart your server.
+4. Connect to your server.
+5. Execute command `/crate create <crateName>` To create a new crate.
+6. Execute command `/crate editor <crateName>` To open the edit menu.
+7. Repeat with other crate types.
+
 ---
 
 ### 💾 Config
