@@ -38,10 +38,10 @@ class CrateCommand extends BaseCommand
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
     {
         $sender->sendMessage(Main::PREFIX . TextFormat::RESET . TextFormat::BLUE . 'commands:');
-        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' create <type> ' . TextFormat::WHITE . 'Create Crate');
-        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' remove <type> ' . TextFormat::WHITE . 'Remove Crate');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' create <crateName> ' . TextFormat::WHITE . 'Create Crate');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' remove <crateName> ' . TextFormat::WHITE . 'Remove Crate');
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' list ' . TextFormat::WHITE . 'View crate list');
-        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' editor <type> ' . TextFormat::WHITE . 'Crate Editor');
+        $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' editor <crateName> ' . TextFormat::WHITE . 'Crate Editor');
         $sender->sendMessage(TextFormat::YELLOW . 'Use /' . $aliasUsed . ' renameitem <name|lore> <text> ' . TextFormat::WHITE . 'Rename an item ' . TextFormat::GRAY . '(Note: To skip a line in the lore use {LINE})');
     }
 }
