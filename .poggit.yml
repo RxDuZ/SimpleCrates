@@ -8,7 +8,7 @@ projects:
     icon: "img/SimpleCrates.png"
     libs:
       - src: muqsit/InvMenu/InvMenu
-        version: ^4.6.5
+        version: ^4.6.6
         branch: pm5
       - src: ACM-PocketMine-MP/Commando/Commando
         version: ^3.2.1
