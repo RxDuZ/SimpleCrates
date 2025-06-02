@@ -10,11 +10,12 @@ use pocketmine\network\mcpe\protocol\PlaySoundPacket;
 use pocketmine\player\Player;
 use pocketmine\Server;
 
-class Utils
+final class Utils
 {
 
 	/**
 	 * @param Item $item
+	 * 
 	 * @return string
 	 */
 	public static function jsonSerialize(Item $item): string
@@ -24,6 +25,7 @@ class Utils
 
 	/**
 	 * @param string $encode
+	 * 
 	 * @return Item
 	 */
 	public static function legacyStringJsonDeserialize(string $encode): Item
@@ -37,6 +39,7 @@ class Utils
 
 	/**
 	 * @param array $array
+	 * 
 	 * @return int
 	 */
 	public static function firstFreeKey(array $array): int

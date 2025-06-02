@@ -14,6 +14,7 @@ use pocketmine\item\StringToItemParser;
 use pocketmine\player\Player;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\particle\BlockBreakParticle;
+use rxduz\crates\extension\animations\OpeningAnimationUtils;
 use rxduz\crates\extension\Crate;
 use rxduz\crates\libs\texter\SendType;
 use rxduz\crates\task\SendTextsTask;
@@ -42,9 +43,7 @@ class EventListener implements Listener
     {
         $player = $ev->getPlayer();
 
-        $world = $player->getWorld();
-
-        $sendTask = new SendTextsTask($player, $world, SendType::ADD);
+        $sendTask = new SendTextsTask($player, $player->getWorld(), SendType::ADD);
 
         Main::getInstance()->getScheduler()->scheduleDelayedRepeatingTask($sendTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
     }
@@ -54,24 +53,24 @@ class EventListener implements Listener
      */
     public function onEntityTeleport(EntityTeleportEvent $ev): void
     {
-        $entity = $ev->getEntity();
+        $player = $ev->getEntity();
 
-        if ($entity instanceof Player) {
-            $from = $ev->getFrom()->getWorld();
+        if (!$player instanceof Player or !$player->isOnline()) return;
 
-            $to = $ev->getTo()->getWorld();
+        $from = $ev->getFrom()->getWorld();
 
-            if ($from->getFolderName() === $to->getFolderName()) return;
+        $to = $ev->getTo()->getWorld();
 
-            $removeTask = new SendTextsTask($entity, $from, SendType::REMOVE);
+        if ($from->getFolderName() === $to->getFolderName()) return;
 
-            $addTask = new SendTextsTask($entity, $to, SendType::ADD);
+        $removeTask = new SendTextsTask($player, $from, SendType::REMOVE);
 
-            $scheduler = Main::getInstance()->getScheduler();
+        $addTask = new SendTextsTask($player, $to, SendType::ADD);
 
-            $scheduler->scheduleDelayedRepeatingTask($removeTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
-            $scheduler->scheduleDelayedRepeatingTask($addTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
-        }
+        $scheduler = Main::getInstance()->getScheduler();
+
+        $scheduler->scheduleDelayedRepeatingTask($removeTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
+        $scheduler->scheduleDelayedRepeatingTask($addTask, SendTextsTask::DELAY_TICKS, SendTextsTask::TICKING_PERIOD);
     }
 
     /**
@@ -88,11 +87,11 @@ class EventListener implements Listener
                 case CrateManager::CONFIGURATOR_ITEM_CHANGE:
                     $item = $player->getInventory()->getItemInHand();
 
-                    $msg = $ev->getMessage();
+                    $message = strtolower($ev->getMessage());
 
-                    if (strtolower($msg) === 'confirm') {
-                        if ($item === null) {
-                            $player->sendMessage(TextFormat::RED . 'This item is not valid.');
+                    if ($message === 'confirm') {
+                        if ($item->isNull()) {
+                            $player->sendMessage(TextFormat::RED . 'Please use a valid item.');
 
                             $ev->cancel();
 
@@ -106,7 +105,7 @@ class EventListener implements Listener
                         $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CHANGE', ['{ITEM}' => $item->getName()]));
 
                         $ev->cancel();
-                    } else if (strtolower($msg) === 'cancel') {
+                    } else if ($message === 'cancel') {
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
                         $player->sendMessage(Translation::getInstance()->getMessage('COMMAND_SETUP_CANCEL'));
@@ -115,84 +114,86 @@ class EventListener implements Listener
                     }
                     break;
                 case CrateManager::CONFIGURATOR_ITEM_CHANCE:
-                    $msg = $ev->getMessage();
+                    $message = $ev->getMessage();
 
-                    if (!is_numeric($msg)) {
-                        $player->sendMessage(TextFormat::RED . 'Use a numeric value for chance');
-
-                        $ev->cancel();
-
-                        return;
-                    }
-
-                    if (intval($msg) > 100) {
-                        $player->sendMessage(TextFormat::RED . 'The maximum value is 100');
+                    if (!is_numeric($message)) {
+                        $player->sendMessage(TextFormat::RED . 'Use a numeric value for chance.');
 
                         $ev->cancel();
 
                         return;
                     }
 
-                    $configurator->setChance(intval($msg));
+                    $chance = intval($message);
+
+                    if ($chance > 100) {
+                        $player->sendMessage(TextFormat::RED . 'The maximum value is 100.');
+
+                        $ev->cancel();
+
+                        return;
+                    }
+
+                    $configurator->setChance($chance);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CHANCE', ['{VALUE}' => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CHANCE', ['{VALUE}' => $chance]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_ITEM_COMMAND:
-                    $msg = $ev->getMessage();
+                    $message = $ev->getMessage();
 
-                    $commands = explode(',', $msg);
+                    $commands = explode(',', $message);
 
                     $configurator->setCommand($commands);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_COMMAND', ['{VALUE}' => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_COMMAND', ['{VALUE}' => $message]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_CRATE_HOLOGRAMS:
-                    $msg = str_replace('{LINE}', TextFormat::EOL, TextFormat::colorize($ev->getMessage()));
+                    $message = str_replace('{LINE}', TextFormat::EOL, TextFormat::colorize($ev->getMessage()));
 
                     $crate = $configurator->getCrate();
 
-                    $crate->setFloatingText($msg);
+                    $crate->setFloatingText($message);
 
                     $crate->updateFloatingText(true, SendType::EDIT);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_HOLOGRAM', ['{VALUE}' => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_HOLOGRAM', ['{VALUE}' => $message]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_CRATE_COMMANDS:
-                    $msg = $ev->getMessage();
+                    $message = $ev->getMessage();
 
-                    $commands = explode(',', $msg);
+                    $commands = explode(',', $message);
 
                     $configurator->getCrate()->setCommands($commands);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_COMMAND', ['{VALUE}' => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_COMMAND', ['{VALUE}' => $message]));
 
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_CRATE_PARTICLE:
-                    $msg = $ev->getMessage();
+                    $message = $ev->getMessage();
 
-                    if (is_string($msg) and strtolower($msg) === 'rgb') {
+                    if (is_string($message) and strtolower($message) === 'rgb') {
                         $configurator->getCrate()->setParticleId(-1);
 
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE', ['{VALUE}' => $msg]));
-                    } else if (is_numeric($msg)) {
-                        $id = intval($msg);
+                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE', ['{VALUE}' => 'RGB']));
+                    } else if (is_numeric($message)) {
+                        $id = intval($message);
 
                         if ($id > 89) {
                             $id = 89;
@@ -202,7 +203,7 @@ class EventListener implements Listener
 
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE', ['{VALUE}' => $msg]));
+                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE_ID', ['{VALUE}' => $id]));
                     } else {
                         $player->sendMessage(TextFormat::RED . 'Use a numeric value for ID');
                     }
@@ -210,9 +211,9 @@ class EventListener implements Listener
                     $ev->cancel();
                     break;
                 case CrateManager::CONFIGURATOR_CRATE_PARTICLE_COLOR:
-                    $msg = $ev->getMessage();
+                    $message = $ev->getMessage();
 
-                    $args = explode(':', $msg);
+                    $args = explode(':', $message);
 
                     if (!isset($args[0], $args[1], $args[2])) {
                         $player->sendMessage(TextFormat::RED . 'Arguments are missing, example: 255:0:0');
@@ -223,18 +224,49 @@ class EventListener implements Listener
                     }
 
                     if (!is_numeric($args[0]) or !is_numeric($args[1]) or !is_numeric($args[2])) {
-                        $player->sendMessage(TextFormat::RED . 'Use numeric value in the RGB format');
+                        $player->sendMessage(TextFormat::RED . 'Use numeric value in the RGB format.');
 
                         $ev->cancel();
 
                         return;
                     }
 
-                    $configurator->getCrate()->setParticleColor($msg);
+                    $configurator->getCrate()->setParticleColor($message);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
-                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE_COLOR', ['{VALUE}' => $msg]));
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_PARTICLE_COLOR', ['{VALUE}' => $message]));
+
+                    $ev->cancel();
+                    break;
+                case CrateManager::CONFIGURATOR_CRATE_OPENING_ANIMATION:
+                    $message = strtolower($ev->getMessage());
+
+                    if ($message === 'none') {
+                        $configurator->getCrate()->setOpeningAnimation();
+
+                        Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
+
+                        $player->sendMessage(Translation::getInstance()->getMessage('SETUP_DISABLED_CRATE_OPENING_ANIMATION'));
+
+                        $ev->cancel();
+
+                        return;
+                    }
+
+                    if (!OpeningAnimationUtils::getInstance()->exists($message)) {
+                        $player->sendMessage(TextFormat::RED . 'This animation does not exist, available animations: ' . TextFormat::WHITE . implode(', ', OpeningAnimationUtils::getInstance()->getAnimationsLocal()));
+
+                        $ev->cancel();
+
+                        return;
+                    }
+
+                    $configurator->getCrate()->setOpeningAnimation($message);
+
+                    Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
+
+                    $player->sendMessage(Translation::getInstance()->getMessage('SETUP_SUCCESS_CRATE_OPENING_ANIMATION', ['{VALUE}' => $message]));
 
                     $ev->cancel();
                     break;
@@ -247,13 +279,7 @@ class EventListener implements Listener
      */
     public function onBreak(BlockBreakEvent $ev): void
     {
-        $block = $ev->getBlock();
-
-        if ($ev->isCancelled()) return;
-
-        $crate = Main::getInstance()->getCrateManager()->getCrateByPosition($block->getPosition());
-
-        if ($crate instanceof Crate) $ev->cancel();
+        if (Main::getInstance()->getCrateManager()->getCrateByPosition($ev->getBlock()->getPosition()) instanceof Crate) $ev->cancel();
     }
 
     /**
@@ -261,50 +287,46 @@ class EventListener implements Listener
      */
     public function onInteract(PlayerInteractEvent $ev): void
     {
+        $crateManager = Main::getInstance()->getCrateManager();
         $player = $ev->getPlayer();
-
         $block = $ev->getBlock();
-
         $item = $player->getInventory()->getItemInHand();
-
         $pluginConfig = Main::getInstance()->getConfig()->get('crates');
+        $id = StringToItemParser::getInstance()->lookupAliases($block->asItem())[0] ?? 'air';
 
-        $stringToItem = StringToItemParser::getInstance();
-
-        $id = $stringToItem->lookupAliases($block->asItem())[0] ?? 'air';
-
-        if (Main::getInstance()->getCrateManager()->isConfigurator($player->getName())) {
-            $configurator = Main::getInstance()->getCrateManager()->getConfiguration($player->getName());
-
+        if ($crateManager->isConfigurator($player->getName())) {
+            $configurator = $crateManager->getConfiguration($player->getName());
             if ($ev->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK and $configurator->getType() === CrateManager::CONFIGURATOR_SET_CRATE and in_array($id, $pluginConfig['blocks'])) {
-                if (Main::getInstance()->getCrateManager()->getCrateByPosition($block->getPosition()) === null) {
+                if ($crateManager->getCrateByPosition($block->getPosition()) === null) {
                     $crate = $configurator->getCrate();
-
                     Main::getInstance()->getPositionManager()->createPosition($crate->getName(), $block->getPosition());
-
                     $crate->updateFloatingText(true, SendType::ADD);
-
-                    Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
-
+                    $crateManager->removeConfigurator($player->getName());
                     $player->sendMessage(Translation::getInstance()->getMessage('CRATE_SET_BLOCK', [
                         '{PREFIX}' => Main::PREFIX,
                         '{CRATE}' => $crate->getName()
                     ]));
-
                     $ev->cancel();
                 }
             }
-        } else if (in_array($id, $pluginConfig['blocks'])) {
-            $crate = Main::getInstance()->getCrateManager()->getCrateByPosition($block->getPosition());
-
+        } elseif (in_array($id, $pluginConfig['blocks'])) {
+            $crate = $crateManager->getCrateByPosition($block->getPosition());
             if ($crate instanceof Crate) {
                 $ev->cancel();
-
                 if ($ev->getAction() === PlayerInteractEvent::RIGHT_CLICK_BLOCK and $crate->isValidKey($item)) {
-                    $crate->openCrate($player, $item);
-                } else if ($ev->getAction() === PlayerInteractEvent::LEFT_CLICK_BLOCK) {
+                    if ($pluginConfig['skip-animation-mode'] and $player->isSneaking()) {
+                        if ($crateManager->inSkipAnimation($player->getName())) {
+                            $crate->openCrate($player, $item, true);
+                            $crateManager->removeSkipAnimation($player->getName());
+                        } else {
+                            $crateManager->setSkipAnimation($player->getName());
+                            $player->sendMessage(Translation::getInstance()->getMessage('CRATE_CONFIRM_SKIP_ANIMATION'));
+                        }
+                    } else {
+                        $crate->openCrate($player, $item);
+                    }
+                } elseif ($ev->getAction() === PlayerInteractEvent::LEFT_CLICK_BLOCK) {
                     $crate->previewCrate($player);
-
                     $block->getPosition()->getWorld()->addParticle($block->getPosition()->asVector3(), new BlockBreakParticle($block));
                 }
             }
@@ -318,10 +340,6 @@ class EventListener implements Listener
      */
     public function onPickip(EntityItemPickupEvent $ev): void
     {
-        $player = $ev->getEntity();
-
-        $item = $ev->getItem();
-
-        if ($player instanceof Player and $item->getNamedTag()->getTag('CrateItem') !== null) $ev->cancel();
+        if ($ev->getItem()->getNamedTag()->getTag('CrateItem') !== null) $ev->cancel();
     }
 }

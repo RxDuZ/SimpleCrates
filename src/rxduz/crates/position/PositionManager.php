@@ -8,7 +8,7 @@ use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
 use rxduz\crates\Main;
 
-class PositionManager
+final class PositionManager
 {
 
     /** @var Config $data */
@@ -48,15 +48,17 @@ class PositionManager
 
     /**
      * @param string $name
+     * 
      * @return bool
      */
     public function exists(string $name): bool
     {
-        return isset($this->positions[strtolower($name)]);
+        return $this->getPositionByName($name) !== null;
     }
 
     /**
      * @param string $name
+     * 
      * @return Position|null
      */
     public function getPositionByName(string $name): Position|null
@@ -70,12 +72,13 @@ class PositionManager
      */
     public function createPosition(string $name, Position $position): void
     {
-        $data = [
-            'world' => $position->getWorld()->getFolderName(),
-            'position' => ['X' => $position->getX(), 'Y' => $position->getY(), 'Z' => $position->getZ()]
-        ];
-
-        $this->data->set($name, $data);
+        $this->data->set(
+            $name,
+            [
+                'world' => $position->getWorld()->getFolderName(),
+                'position' => ['X' => $position->getX(), 'Y' => $position->getY(), 'Z' => $position->getZ()]
+            ]
+        );
 
         $this->data->save();
 

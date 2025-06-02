@@ -8,20 +8,17 @@
 # SimpleCrates config by iRxDuZ ツ
 
 # Do not touch :)
-CONFIG_VERSION: 1
+CONFIG_VERSION: 2
 
-# Keys configuration
+# Keys configuration.
 keys:
-  id: "tripwire_hook"
-  name: "§d{CRATE} Key"
-  lore: "§eClaim rewards from a {CRATE} Crate"
+  id: "tripwire_hook" # Item key id.
+  name: "§d{CRATE} Key" # Item key custom name.
+  lore: "§eClaim rewards from a {CRATE} Crate" # Item key lore.
 
-# Crates configuration default
-# Default blocks (chest, enchantment table, end portal frame, lime shulker box)
+# Crates configuration.
 crates:
-  blocks: ["chest", "enchant_table", "end_portal_frame", "lime_shulker_box"]
-  animation: true
-  duration: 5
-  preview-items: true
-  drop-item-time: 5
-  particle: true
+  blocks: ["chest", "enchant_table", "end_portal_frame", "lime_shulker_box"] # Blocks allowed for crates.
+  preview-items: true # Preview the content in item entities.
+  drop-item-time: 5 # Time to change the item entity.
+  skip-animation-mode: true # This option allows you to skip the opening animation if you right-click with the key in hand and shift.

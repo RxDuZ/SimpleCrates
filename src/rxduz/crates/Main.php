@@ -4,30 +4,32 @@ namespace rxduz\crates;
 
 use CortexPE\Commando\BaseCommand;
 use CortexPE\Commando\PacketHooker;
+use JackMD\ConfigUpdater\ConfigUpdater;
 use muqsit\invmenu\InvMenuHandler;
 use pocketmine\plugin\PluginBase;
+use pocketmine\scheduler\ClosureTask;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\TextFormat;
 use rxduz\crates\command\CrateCommand;
 use rxduz\crates\command\KeyAllCommand;
 use rxduz\crates\command\KeyCommand;
-use rxduz\crates\migrator\VersionMigrator;
+use rxduz\crates\extension\animations\OpeningAnimationUtils;
 use rxduz\crates\position\PositionManager;
-use rxduz\crates\task\CrateUpdateTask;
-use rxduz\crates\task\ParticleUpdateTask;
 use rxduz\crates\translation\Translation;
-use rxduz\crates\utils\ConfigUpdater;
 
 class Main extends PluginBase
 {
 
-    use SingletonTrait;
+    use SingletonTrait {
+        setInstance as private;
+        reset as private;
+    }
 
     /** @var string */
     public const PREFIX = TextFormat::BOLD . TextFormat::DARK_GRAY . '(' . TextFormat::BLUE . 'SimpleCrates' . TextFormat::DARK_GRAY . ')' . TextFormat::RESET . ' ';
 
     /** @var int */
-    public const CONFIG_VERSION = 1;
+    public const CONFIG_VERSION = 2;
 
     /** @var CrateManager $crateManager */
     private CrateManager $crateManager;
@@ -46,6 +48,7 @@ class Main extends PluginBase
             [
                 'Commando' => BaseCommand::class,
                 'InvMenu' => InvMenuHandler::class,
+                'ConfigUpdater' => ConfigUpdater::class
             ] as $virion => $class
         ) {
             if (!class_exists($class)) {
@@ -71,13 +74,17 @@ class Main extends PluginBase
 
         $this->saveResource('/messages.yml');
 
+        $this->saveResource('/templates.yml');
+
         $this->positionManager = new PositionManager();
 
         $this->crateManager = new CrateManager();
 
-        ConfigUpdater::checkUpdate($this->getConfig(), self::CONFIG_VERSION);
+        ConfigUpdater::checkUpdate($this, $this->getConfig(), 'CONFIG_VERSION', self::CONFIG_VERSION);
 
-        Translation::getInstance()->init();
+        Translation::getInstance()->load($this);
+
+        OpeningAnimationUtils::getInstance()->load($this);
 
         $this->getServer()->getCommandMap()->registerAll('SimpleCrates', [
             new KeyCommand($this),
@@ -85,9 +92,17 @@ class Main extends PluginBase
             new CrateCommand($this)
         ]);
 
-        new CrateUpdateTask($this);
+        $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
+            foreach ($this->getCrateManager()->getCrates() as $crate) {
+                $crate->updatePreview();
+            }
+        }), 20);
 
-        new ParticleUpdateTask($this);
+        $this->getScheduler()->scheduleRepeatingTask(new ClosureTask(function (): void {
+            foreach ($this->getCrateManager()->getCrates() as $crate) {
+                $crate->updateParticles();
+            }
+        }), 1);
 
         $this->getServer()->getPluginManager()->registerEvents(new EventListener(), $this);
 

@@ -14,17 +14,16 @@ class CreateSubCommand extends BaseSubCommand
 
     public const ARGUMENT_CRATE = 'crateName';
 
-    public function prepare(): void
+    protected function prepare(): void
     {
         $this->setPermission('simplecrates.command.create');
-
         $this->registerArgument(0, new RawStringArgument(self::ARGUMENT_CRATE));
-
         $this->addConstraint(new InGameRequiredConstraint($this));
     }
 
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
     {
+        /** @var string */
         $crateName = $args[self::ARGUMENT_CRATE];
 
         if (Main::getInstance()->getCrateManager()->isConfigurator($sender->getName())) {

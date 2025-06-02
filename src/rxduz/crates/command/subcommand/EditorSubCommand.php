@@ -16,12 +16,10 @@ class EditorSubCommand extends BaseSubCommand
 
     public const ARGUMENT_CRATE = 'crateName';
 
-    public function prepare(): void
+    protected function prepare(): void
     {
         $this->setPermission('simplecrates.command.editor');
-
         $this->registerArgument(0, new CrateArgument(self::ARGUMENT_CRATE));
-
         $this->addConstraint(new InGameRequiredConstraint($this));
     }
 

@@ -3,12 +3,24 @@
 namespace rxduz\crates\utils;
 
 use pocketmine\item\Item;
+use RuntimeException;
 use rxduz\crates\extension\Crate;
 
-class Configurator
+final class Configurator
 {
 
-    public function __construct(private string $name, private Crate $crate, private string $type, private int $slot = 0) {}
+    /**
+     * @param string $name
+     * @param Crate $crate
+     * @param string $type
+     * @param int $slot
+     */
+    public function __construct(
+        private string $name,
+        private Crate $crate,
+        private string $type,
+        private int $slot = 0
+    ) {}
 
     /**
      * @return string
@@ -36,42 +48,72 @@ class Configurator
 
     /**
      * @param Item $item
+     * 
+     * @throws RuntimeException If the drop not exists.
      */
     public function setItem(Item $item): void
     {
         $drops = $this->crate->getDrops();
 
-        if (array_key_exists($this->slot, $drops)) {
-            $drops[$this->slot]['item'] = $item;
+        $slot = $this->slot;
+
+        $drop = $drops[$slot] ?? null;
+
+        if ($drop === null) {
+            throw new RuntimeException('Drop ' . $slot . ' not found.');
         }
+
+        $drop->setItem($item);
+
+        $drops[$slot] = $drop;
 
         $this->crate->setDrops($drops);
     }
 
     /**
      * @param int $chance
+     * 
+     * @throws RuntimeException If the drop not exists.
      */
     public function setChance(int $chance): void
     {
         $drops = $this->crate->getDrops();
 
-        if (array_key_exists($this->slot, $drops)) {
-            $drops[$this->slot]['chance'] = $chance;
+        $slot = $this->slot;
+
+        $drop = $drops[$slot] ?? null;
+
+        if ($drop === null) {
+            throw new RuntimeException('Drop ' . $slot . ' not found.');
         }
+
+        $drop->setChance($chance);
+
+        $drops[$slot] = $drop;
 
         $this->crate->setDrops($drops);
     }
 
     /**
-     * @param array $command
+     * @param string[] $commands
+     * 
+     * @throws RuntimeException If the drop not exists.
      */
-    public function setCommand(array $command): void
+    public function setCommand(array $commands): void
     {
         $drops = $this->crate->getDrops();
 
-        if (array_key_exists($this->slot, $drops)) {
-            $drops[$this->slot]['commands'] = $command;
+        $slot = $this->slot;
+
+        $drop = $drops[$slot] ?? null;
+
+        if ($drop === null) {
+            throw new RuntimeException('Drop ' . $slot . ' not found.');
         }
+
+        $drop->setCommands($commands);
+
+        $drops[$slot] = $drop;
 
         $this->crate->setDrops($drops);
     }

@@ -17,14 +17,11 @@ class RenameItemSubCommand extends BaseSubCommand
 
     private const ARGUMENT_NAME = 'name';
 
-    public function prepare(): void
+    protected function prepare(): void
     {
         $this->setPermission('simplecrates.command.renameitem');
-
         $this->registerArgument(0, new RawStringArgument(self::ARGUMENT_TYPE));
-
-        $this->registerArgument(1, new TextArgument(self::ARGUMENT_NAME, true));
-
+        $this->registerArgument(1, new TextArgument(self::ARGUMENT_NAME));
         $this->addConstraint(new InGameRequiredConstraint($this));
     }
 
@@ -32,9 +29,11 @@ class RenameItemSubCommand extends BaseSubCommand
     {
         assert($sender instanceof Player);
 
+        /** @var string $type */
         $type = $args[self::ARGUMENT_TYPE];
 
-        $name = $args[self::ARGUMENT_NAME] ?? $sender->getName();
+        /** @var string $name */
+        $name = $args[self::ARGUMENT_NAME];
 
         $item = $sender->getInventory()->getItemInHand();
 
@@ -63,13 +62,11 @@ class RenameItemSubCommand extends BaseSubCommand
 
                 $sender->getInventory()->setItemInHand($item);
 
-                $sender->sendMessage(TextFormat::GREEN . 'Item successfully renamed to ' . TextFormat::RESET . $colorize);
+                $sender->sendMessage(TextFormat::GREEN . 'Item successfully change lore to ' . TextFormat::RESET . $colorize);
                 break;
             case 'help':
             default:
-                $sender->sendMessage(TextFormat::RED . 'Use /crate renameitem <name|lore> <text>');
-
-                $sender->sendMessage(TextFormat::GRAY . 'Note: To skip a line in the lore use {LINE}');
+                $sender->sendMessage(TextFormat::RED . 'Use /crate renameitem <name|lore> <text>' . TextFormat::EOL . TextFormat::GRAY . 'Note: To skip a line in the lore use {LINE}');
                 break;
         }
     }

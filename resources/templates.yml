@@ -1,0 +1,18 @@
+spinning:
+  speed: 2
+  duration: 80
+  background:
+    block: "white_stained_glass_pane"
+    type: "rainbow"
+roulette:
+  speed: 2
+  duration: 80
+  background:
+    block: "white_stained_glass_pane"
+    type: "rainbow"
+mystery:
+  speed: 2
+  duration: 80
+  background:
+    block: "white_stained_glass_pane"
+    type: "rainbow"

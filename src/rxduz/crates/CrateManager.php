@@ -2,15 +2,17 @@
 
 namespace rxduz\crates;
 
+use Exception;
 use pocketmine\utils\Config;
 use pocketmine\world\Position;
 use pocketmine\world\World;
 use rxduz\crates\extension\Crate;
+use rxduz\crates\extension\Drop;
 use rxduz\crates\Main;
 use rxduz\crates\utils\Configurator;
 use rxduz\crates\utils\Utils;
 
-class CrateManager
+final class CrateManager
 {
 
     /** @var array */
@@ -18,16 +20,10 @@ class CrateManager
         'drops' => [],
         'commands' => [],
         'floating-text' => '',
+        'particle-enabled' => true,
         'particle-id' => -1,
-        'particle-color' => '0:255:0'
-    ];
-
-    /** @var array */
-    public const DEFAULT_ITEM_DATA = [
-        'item' => '',
-        'type' => 'item',
-        'commands' => [],
-        'chance' => 10
+        'particle-color' => '0:255:0',
+        'opening-animation' => 'none'
     ];
 
     /** @var string */
@@ -54,13 +50,19 @@ class CrateManager
     /** @var string */
     public const CONFIGURATOR_CRATE_PARTICLE_COLOR = 'crate_particle_color';
 
-    /** @var Config $data */
+    /** @var string */
+    public const CONFIGURATOR_CRATE_OPENING_ANIMATION = 'opening_animation';
+
+    /** @var Config */
     private Config $data;
 
-    /** @var array $setters */
+    /** @var array<string, Configurator>*/
     private array $setters = [];
 
-    /** @var array<string, Crate> $crates */
+    /** @var string[] */
+    private array $skipAnimation = [];
+
+    /** @var array<string, Crate> */
     private array $crates = [];
 
     public function __construct()
@@ -75,12 +77,12 @@ class CrateManager
 
                 $commands = $drop['commands'] ?? [];
 
-                $drops[$slot] = [
-                    'item' => Utils::legacyStringJsonDeserialize($drop['item']),
-                    'type' => (empty($commands) ? 'item' : 'command'),
-                    'commands' => $commands,
-                    'chance' => $chance
-                ];
+                $drops[intval($slot)] = new Drop(
+                    Utils::legacyStringJsonDeserialize($drop['item']),
+                    (empty($commands) ? 'item' : 'command'),
+                    $commands,
+                    $chance
+                );
             }
 
             $this->crates[strtolower($name)] = new Crate(
@@ -88,8 +90,10 @@ class CrateManager
                 $drops,
                 $value['commands'] ?? [],
                 $value['floating-text'] ?? '',
+                $value['particle enabled'] ?? true,
                 $value['particle-id'] ?? -1,
-                $value['particle-color'] ?? '0:255:0'
+                $value['particle-color'] ?? '0:255:0',
+                $value['opening-animation'] ?? 'none'
             );
         }
     }
@@ -114,15 +118,17 @@ class CrateManager
 
     /**
      * @param string $name
+     * 
      * @return bool
      */
     public function exists(string $name): bool
     {
-        return isset($this->crates[strtolower($name)]);
+        return $this->getCrateByName($name) !== null;
     }
 
     /**
      * @param Position $position
+     * 
      * @return Crate|null
      */
     public function getCrateByPosition(Position $position): Crate|null
@@ -140,6 +146,7 @@ class CrateManager
 
     /**
      * @param string $name
+     * 
      * @return Crate|null
      */
     public function getCrateByName(string $name): Crate|null
@@ -156,7 +163,7 @@ class CrateManager
 
         $this->save($name, $data);
 
-        $this->crates[strtolower($name)] = new Crate($name, $data['drops'], $data['commands'], $data['floating-text'], $data['particle-id'], $data['particle-color']);
+        $this->crates[strtolower($name)] = new Crate($name, $data['drops'], $data['commands'], $data['floating-text'], $data['particle-enabled'], $data['particle-id'], $data['particle-color'], $data['opening-animation']);
     }
 
     /**
@@ -182,6 +189,7 @@ class CrateManager
 
     /**
      * @param string $name
+     * 
      * @return bool
      */
     public function isConfigurator(string $name): bool
@@ -199,6 +207,7 @@ class CrateManager
 
     /**
      * @param string $name
+     * 
      * @return Configurator|null
      */
     public function getConfiguration(string $name): Configurator|null
@@ -211,20 +220,50 @@ class CrateManager
      */
     public function removeConfigurator(string $name): void
     {
-        if (isset($this->setters[$name])) {
-            unset($this->setters[$name]);
-        }
+        if (isset($this->setters[$name])) unset($this->setters[$name]);
+    }
+
+    /**
+     * @param string $name
+     * 
+     * @return bool
+     */
+    public function inSkipAnimation(string $name): bool
+    {
+        return in_array($name, $this->skipAnimation, true);
+    }
+
+    /**
+     * @param string $name
+     */
+    public function setSkipAnimation(string $name): void
+    {
+        $this->skipAnimation[] = $name;
+    }
+
+    /**
+     * @param string $name
+     */
+    public function removeSkipAnimation(string $name): void
+    {
+        $key = array_search($name, $this->skipAnimation);
+
+        if ($key !== false) unset($this->skipAnimation[$key]);
     }
 
     /**
      * @param string $name
      * @param array $data
      */
-    public function save(string $name, array $data)
+    public function save(string $name, array $data): void
     {
         $this->data->set($name, $data);
 
-        $this->data->save();
+        try {
+            $this->data->save();
+        } catch (Exception $e) {
+            Main::getInstance()->getLogger()->error('Failed to save crate ' . $name . ': ' . $e->getMessage());
+        }
     }
 
     public function closeAll(): void

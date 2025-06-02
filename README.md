@@ -10,7 +10,8 @@
 
 - <a href="https://github.com/Muqsit/InvMenu">InvMenu virion</a>
 - <a href="https://github.com/CortexPE/Commando">Commando virion</a>
-- PMMP 5.19.0+
+- <a href="https://github.com/ifera-mc/ConfigUpdater">ConfigUpdater virion</a>
+- PMMP 5.27.0+
 
 ### Implementations
 
@@ -20,7 +21,8 @@
 - [x] Decorative particles by id or RGB
 - [x] Floating items preview
 - [x] Custom messages
-- [x] Animations when opening the crate (can be disabled in config.yml)
+- [x] NEW Opening Animation (You can edit the values ​​in templates.yml)
+- [x] NEW Allows you to skip the opening animation if you right-click with the key in hand and shift (You need to set the skip-animation-mode option to true in config.yml)
 - [x] Configurable key
 
 ## Installation & Setup
@@ -48,42 +50,41 @@
 # SimpleCrates config by iRxDuZ ツ
 
 # Do not touch :)
-CONFIG_VERSION: 1
+CONFIG_VERSION: 2
 
-# Keys configuration
+# Keys configuration.
 keys:
-  id: "tripwire_hook"
-  name: "§d{CRATE} Key"
-  lore: "§eClaim rewards from a {CRATE} Crate"
+  id: "tripwire_hook" # Item key id.
+  name: "§d{CRATE} Key" # Item key custom name.
+  lore: "§eClaim rewards from a {CRATE} Crate" # Item key lore.
 
-# Crates configuration default
-# Default blocks (chest, enchantment table, end portal frame, lime shulker box)
+# Crates configuration.
 crates:
-  blocks: ["chest", "enchant_table", "end_portal_frame", "lime_shulker_box"]
-  animation: true
-  duration: 5
-  preview-items: true
-  drop-item-time: 5
-  particle: true
+  blocks: ["chest", "enchant_table", "end_portal_frame", "lime_shulker_box"] # Blocks allowed for crates.
+  preview-items: true # Preview the content in item entities.
+  drop-item-time: 5 # Time to change the item entity.
+  skip-animation-mode: true # This option allows you to skip the opening animation if you right-click with the key in hand and shift.
 ```
 
 ## Permissions
 
-| Permissions                       | Description                      | Default |
-| --------------------------------- | -------------------------------- | ------- |
-| `simplecrates.command.crate`      | Allow to use /crate main command | `true`  |
-| `simplecrates.command.create`     | Allow to create new crate        | `op`    |
-| `simplecrates.command.delete`     | Allow to delete crate            | `op`    |
-| `simplecrates.command.list`       | Allow to view crate list         | `op`    |
-| `simplecrates.command.editor`     | Allow to Open crate menu editor  | `op`    |
-| `simplecrates.command.renameitem` | Allow to Rename an item          | `op`    |
-| `simplecrates.command.key`        | Allow to use /key command        | `op`    |
-| `simplecrates.command.keyall`     | Allow to use /keyall command     | `op`    |
+| Permissions                         | Description                      | Default |
+| ----------------------------------- | -------------------------------- | ------- |
+| `simplecrates.command`              | Allow to use /crate main command | `true`  |
+| `simplecrates.command.create`       | Allow to create new crate        | `op`    |
+| `simplecrates.command.delete`       | Allow to delete crate            | `op`    |
+| `simplecrates.command.list`         | Allow to view crate list         | `op`    |
+| `simplecrates.command.reloadconfig` | Allow to reload all configs      | `op`    |
+| `simplecrates.command.editor`       | Allow to Open crate menu editor  | `op`    |
+| `simplecrates.command.renameitem`   | Allow to Rename an item          | `op`    |
+| `simplecrates.command.key`          | Allow to use /key command        | `op`    |
+| `simplecrates.command.keyall`       | Allow to use /keyall command     | `op`    |
 
 ### ✔ Credits
 
-| Authors        | Github                                         | Lib                                              |
-| -------------- | ---------------------------------------------- | ------------------------------------------------ |
-| Muqsit         | [Muqsit](https://github.com/Muqsit)            | [InvMenu](https://github.com/Muqsit/InvMenu)     |
-| marshall       | [marshall](https://github.com/CortexPE)        | [Commando](https://github.com/CortexPE/Commando) |
-| yuko fuyutsuki | [yuko fuyutsuki](https://github.com/fuyutsuki) | [Texter](https://github.com/fuyutsuki/Texter)    |
+| Authors        | Github                                         | Lib                                                        |
+| -------------- | ---------------------------------------------- | ---------------------------------------------------------- |
+| Muqsit         | [Muqsit](https://github.com/Muqsit)            | [InvMenu](https://github.com/Muqsit/InvMenu)               |
+| marshall       | [marshall](https://github.com/CortexPE)        | [Commando](https://github.com/CortexPE/Commando)           |
+| yuko fuyutsuki | [yuko fuyutsuki](https://github.com/fuyutsuki) | [Texter](https://github.com/fuyutsuki/Texter)              |
+| Ifera          | [Ifera](https://github.com/ifera-mc)           | [ConfigUpdater](https://github.com/ifera-mc/ConfigUpdater) |

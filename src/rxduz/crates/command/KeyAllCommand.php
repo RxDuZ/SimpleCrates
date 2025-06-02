@@ -18,17 +18,15 @@ class KeyAllCommand extends BaseCommand
 
     public const ARGUMENT_AMOUNT = 'amount';
 
-    public function __construct(private Main $plugin)
+    public function __construct(Main $plugin)
     {
-        parent::__construct($plugin, 'keyall', 'SimpleCrates command by @zRxDuZ', []);
+        parent::__construct($plugin, 'keyall', 'SimpleCrates command by iRxDuZ', []);
     }
 
-    public function prepare(): void
+    protected function prepare(): void
     {
         $this->setPermission('simplecrates.command.keyall');
-
         $this->registerArgument(0, new CrateArgument(self::ARGUMENT_CRATE));
-
         $this->registerArgument(1, new IntegerArgument(self::ARGUMENT_AMOUNT, true));
     }
 

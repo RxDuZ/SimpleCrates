@@ -1,20 +1,22 @@
 name: SimpleCrates
 main: rxduz\crates\Main
-api: 5.19.0
-version: 3.0.1
+api: 5.27.0
+version: 3.1.0
 author: "iRxDuZ"
 description: "Crates plugin for your server!"
 softdepend: ["VanillaElytra"]
-virions: ["InvMenu", "Commando"]
+virions: ["InvMenu", "Commando", "ConfigUpdater"]
 
 permissions:
-  simplecrates.command.crate:
+  simplecrates.command:
     default: true
   simplecrates.command.create:
     default: op
   simplecrates.command.delete:
     default: op
   simplecrates.command.list:
+    default: op
+  simplecrates.command.reloadconfig:
     default: op
   simplecrates.command.editor:
     default: op

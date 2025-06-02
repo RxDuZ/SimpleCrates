@@ -16,16 +16,16 @@ use pocketmine\network\mcpe\protocol\types\BlockPosition;
 use pocketmine\utils\TextFormat;
 use pocketmine\world\Position;
 use rxduz\crates\CrateManager;
+use rxduz\crates\extension\animations\OpeningAnimationUtils;
 use rxduz\crates\libs\texter\FloatingText;
 use rxduz\crates\libs\texter\SendType;
 use rxduz\crates\Main;
-use rxduz\crates\task\OpenAnimationTask;
 use rxduz\crates\translation\Translation;
 use rxduz\crates\utils\particle\CustomParticle;
 use rxduz\crates\utils\particle\DusterParticle;
 use rxduz\crates\utils\Utils;
 
-class Crate
+final class Crate
 {
     /** @var bool $open */
     private bool $open;
@@ -39,8 +39,26 @@ class Crate
     /** @var int $particleCounter */
     private int $particleCounter;
 
-    public function __construct(private string $name, private array $drops, private array $commands, private string $floatingText, private int $particleId, private string $particleColor)
-    {
+    /**
+     * @param string $name
+     * @param array<int, Drop> $drops
+     * @param string[] $commands
+     * @param string $floatingText
+     * @param bool $particleEnabled
+     * @param int $particleId
+     * @param string $particleColor
+     * @param string $openingAnimation
+     */
+    public function __construct(
+        private string $name,
+        private array $drops,
+        private array $commands,
+        private string $floatingText,
+        private bool $particleEnabled,
+        private int $particleId,
+        private string $particleColor,
+        private string $openingAnimation
+    ) {
         $this->open = false;
 
         $this->dropTime = Main::getInstance()->getConfig()->getNested('crates.drop-item-time', 5);
@@ -85,7 +103,7 @@ class Crate
     }
 
     /**
-     * @param array $drops
+     * @param array<int, Drop>
      */
     public function setDrops(array $drops): void
     {
@@ -95,7 +113,7 @@ class Crate
     }
 
     /**
-     * @return array
+     * @return array<int, Drop>
      */
     public function getDrops(): array
     {
@@ -103,25 +121,27 @@ class Crate
     }
 
     /**
-     * @return array
+     * @param int $amount
+     * 
+     * @return Drop[]
      */
-    public function getDrop(): array
+    public function getDrop(int $amount = 1): array
     {
-        $dropTable = [];
+        $selectedDrops = [];
 
-        foreach ($this->getDrops() as $drop) {
-            for ($i = 0; $i < $drop['chance']; $i++) {
-                $dropTable[] = $drop;
+        foreach ($this->drops as $drop) {
+            for ($i = 0; $i < $drop->getChance(); $i++) {
+                $selectedDrops[] = $drop;
             }
         }
 
-        $randomDrop = $dropTable[array_rand($dropTable)];
+        shuffle($selectedDrops);
 
-        return $randomDrop;
+        return array_slice($selectedDrops, 0, $amount);
     }
 
     /**
-     * @return array
+     * @return string[]
      */
     public function getCommands(): array
     {
@@ -129,7 +149,7 @@ class Crate
     }
 
     /**
-     * @param array $commands
+     * @param string[] $commands
      */
     public function setCommands(array $commands): void
     {
@@ -152,6 +172,24 @@ class Crate
     public function setFloatingText(string $text): void
     {
         $this->floatingText = $text;
+
+        $this->save();
+    }
+
+    /**
+     * @return bool
+     */
+    public function isParticleEnabled(): bool
+    {
+        return $this->particleEnabled;
+    }
+
+    /**
+     * @param bool $value
+     */
+    public function setParticleEnabled(bool $value): void
+    {
+        $this->particleEnabled = $value;
 
         $this->save();
     }
@@ -195,6 +233,24 @@ class Crate
     }
 
     /**
+     * @return string
+     */
+    public function getOpeningAnimation(): string
+    {
+        return $this->openingAnimation;
+    }
+
+    /**
+     * @param string $openingAnimation
+     */
+    public function setOpeningAnimation(string $openingAnimation = 'none'): void
+    {
+        $this->openingAnimation = $openingAnimation;
+
+        $this->save();
+    }
+
+    /**
      * @param bool $status
      */
     public function setOpen(bool $status): void
@@ -210,6 +266,7 @@ class Crate
 
     /**
      * @param int $amount
+     * 
      * @return Item
      */
     public function getKey(int $amount = 1): Item
@@ -246,6 +303,7 @@ class Crate
 
     /**
      * @param Item $item
+     * 
      * @return bool
      */
     public function isValidKey(Item $item): bool
@@ -264,8 +322,8 @@ class Crate
 
         $chances = 0;
 
-        foreach ($drops as $crateItem) {
-            $chances += $crateItem['chance'];
+        foreach ($drops as $drop) {
+            $chances += $drop->getChance();
         }
 
         $menu = InvMenu::create(count($drops) > 27 ? InvMenu::TYPE_DOUBLE_CHEST : InvMenu::TYPE_CHEST);
@@ -273,11 +331,11 @@ class Crate
         $menu->setListener(InvMenu::readonly());
         $menu->setName(Translation::getInstance()->getMessage('CRATE_NAME_INVENTORY', ['{CRATE}' => $this->getName()]));
 
-        foreach ($drops as $slot => $crateItem) {
-            $item = clone $crateItem['item'];
+        foreach ($drops as $slot => $drop) {
+            $item = clone $drop->getItem();
 
             $item->setCustomName(Translation::getInstance()->getMessage('CRATE_ITEM_NAME_INVENTORY', ['{NAME}' => $item->getName(), '{COUNT}' => $item->getCount()]));
-            $item->setLore([TextFormat::RESET, Translation::getInstance()->getMessage('CRATE_ITEM_LORE_INVENTORY', ['{CHANCE}' => round(($crateItem['chance'] / $chances) * 100, 2, PHP_ROUND_HALF_UP)]), TextFormat::RESET]);
+            $item->setLore([TextFormat::RESET, Translation::getInstance()->getMessage('CRATE_ITEM_LORE_INVENTORY', ['{CHANCE}' => round(($drop->getChance() / $chances) * 100, 2, PHP_ROUND_HALF_UP)]), TextFormat::RESET]);
             $menu->getInventory()->setItem($slot, $item);
         }
 
@@ -287,8 +345,9 @@ class Crate
     /**
      * @param Player $player
      * @param Item $key
+     * @param bool $skipAnimation
      */
-    public function openCrate(Player $player, Item $key): void
+    public function openCrate(Player $player, Item $key, bool $skipAnimation = false): void
     {
         if (empty($this->getDrops())) {
             $player->sendTip(Translation::getInstance()->getMessage('CRATE_EMPTY_DROPS'));
@@ -302,24 +361,50 @@ class Crate
             return;
         }
 
-        $pluginConfig = Main::getInstance()->getConfig()->get('crates');
+        // New method to skip the animation and open the number of keys you have.
+        if ($skipAnimation) {
+            $amount = $key->getCount();
 
-        $drop = $this->getDrop();
+            $player->getInventory()->removeItem($key->setCount($amount));
 
-        /** @var Item $item */
-        $item = clone $drop['item'];
+            foreach ($this->getDrop($amount) as $drop) {
+                $item = clone $drop->getItem();
 
-        $player->getInventory()->removeItem($key->setCount(1));
+                if ($drop->getType() === 'item') {
+                    if ($player->getInventory()->canAddItem($item)) {
+                        $player->getInventory()->addItem($item);
+                    } else {
+                        $player->getWorld()->dropItem($player->getPosition()->asVector3(), $item);
+                    }
+                }
 
-        if ($pluginConfig['animation']) {
-            $this->setOpen(true);
+                foreach ($drop->getCommands() as $dropCommand) {
+                    $player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace('{PLAYER}', '"' . $player->getName() . '"', $dropCommand));
+                }
 
-            Main::getInstance()->getScheduler()->scheduleRepeatingTask(new OpenAnimationTask($this, $player, $pluginConfig['duration'], $drop), 8);
+                foreach ($this->getCommands() as $crateCommand) {
+                    $player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace('{PLAYER}', '"' . $player->getName() . '"', $crateCommand));
+                }
+
+                $player->sendMessage(Translation::getInstance()->getMessage('CRATE_OPEN_REWARD', ['{CRATE}' => $this->getName(), '{REWARD}' => $item->getName()]));
+            }
 
             return;
         }
 
-        if ($drop['type'] === 'item') {
+        $player->getInventory()->removeItem($key->setCount(1));
+
+        if (OpeningAnimationUtils::getInstance()->exists($this->openingAnimation)) {
+            OpeningAnimationUtils::getInstance()->sendAnimationTask($this->openingAnimation, $this, $player);
+
+            return;
+        }
+
+        $drop = $this->getDrop(1)[0];
+
+        $item = clone $drop->getItem();
+
+        if ($drop->getType() === 'item') {
             if ($player->getInventory()->canAddItem($item)) {
                 $player->getInventory()->addItem($item);
             } else {
@@ -327,7 +412,7 @@ class Crate
             }
         }
 
-        foreach ($drop['commands'] as $dropCommand) {
+        foreach ($drop->getCommands() as $dropCommand) {
             $player->getServer()->dispatchCommand(new ConsoleCommandSender(Server::getInstance(), Server::getInstance()->getLanguage()), str_replace('{PLAYER}', '"' . $player->getName() . '"', $dropCommand));
         }
 
@@ -340,9 +425,7 @@ class Crate
 
     public function updatePreview(): void
     {
-        $pluginConfig = Main::getInstance()->getConfig()->get('crates');
-
-        if (!$pluginConfig['preview-items']) return;
+        if (!Main::getInstance()->getConfig()->getNested('crates.preview-items', true)) return;
 
         $cratePosition = $this->getPosition();
 
@@ -350,17 +433,16 @@ class Crate
             if ($cratePosition !== null and !empty($this->getDrops())) {
                 $drop = $this->getDrops()[array_rand($this->getDrops())];
 
-                /** @var Item $item */
-                $item = clone $drop['item'];
+                $item = clone $drop->getItem();
 
                 Utils::clearItems($this->getName());
 
                 $item->getNamedTag()->setString('CrateItem', $this->getName());
 
-                $cratePosition->getWorld()->dropItem($cratePosition->add(0.5, 1, 0.5), $item, new Vector3(0, 0, 0));
+                $cratePosition->getWorld()->dropItem($cratePosition->add(0.5, 1, 0.5), $item, Vector3::zero());
             }
 
-            $this->dropTime = $pluginConfig['drop-item-time'] ?? 3;
+            $this->dropTime = Main::getInstance()->getConfig()->getNested('crates.drop-item-time', 3);
         }
 
         $this->dropTime--;
@@ -368,9 +450,7 @@ class Crate
 
     public function updateParticles(): void
     {
-        $particlesEnabled = Main::getInstance()->getConfig()->getNested('crates.particle', true);
-
-        if (!$particlesEnabled) return;
+        if (!$this->particleEnabled) return;
 
         $cratePosition = $this->getPosition();
 
@@ -467,18 +547,20 @@ class Crate
 
         foreach ($this->drops as $slot => $drop) {
             $drops[$slot] = [
-                'item' => Utils::jsonSerialize($drop['item']),
-                'type' => $drop['type'],
-                'commands' => $drop['commands'],
-                'chance' => $drop['chance']
+                'item' => Utils::jsonSerialize($drop->getItem()),
+                'type' => $drop->getType(),
+                'commands' => $drop->getCommands(),
+                'chance' => $drop->getChance()
             ];
         }
 
         $data['drops'] = $drops;
         $data['commands'] = $this->commands;
         $data['floating-text'] = $this->floatingText;
+        $data['particle-enabled'] = $this->particleEnabled;
         $data['particle-id'] = $this->particleId;
         $data['particle-color'] = $this->particleColor;
+        $data['opening-animation'] = $this->openingAnimation;
 
         Main::getInstance()->getCrateManager()->save($this->name, $data);
     }

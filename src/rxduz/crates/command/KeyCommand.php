@@ -21,19 +21,16 @@ class KeyCommand extends BaseCommand
 
     public const ARGUMENT_TARGET = 'target';
 
-    public function __construct(private Main $plugin)
+    public function __construct(Main $plugin)
     {
-        parent::__construct($plugin, 'key', 'SimpleCrates command by @zRxDuZ', []);
+        parent::__construct($plugin, 'key', 'SimpleCrates command by iRxDuZ', []);
     }
 
-    public function prepare(): void
+    protected function prepare(): void
     {
         $this->setPermission('simplecrates.command.key');
-
         $this->registerArgument(0, new CrateArgument(self::ARGUMENT_CRATE));
-
         $this->registerArgument(1, new IntegerArgument(self::ARGUMENT_AMOUNT, true));
-
         $this->registerArgument(2, new PlayerArgument(self::ARGUMENT_TARGET, true));
     }
 

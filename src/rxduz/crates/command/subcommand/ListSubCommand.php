@@ -10,7 +10,7 @@ use rxduz\crates\Main;
 class ListSubCommand extends BaseSubCommand
 {
 
-    public function prepare(): void
+    protected function prepare(): void
     {
         $this->setPermission('simplecrates.command.list');
     }

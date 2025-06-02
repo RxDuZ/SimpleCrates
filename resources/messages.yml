@@ -1,7 +1,9 @@
 # DO NOT TOUCH!
-MESSAGES_VERSION: 1.5
+MESSAGES_VERSION: 1.6
 
 PLAYER_NOT_ONLINE: "&cPlayer is not online"
+
+RELOAD_ALL_CONFIGS: "&aReload all configs successfully."
 
 CRATE_CREATED: "{PREFIX}&aCrate {CRATE} created successfully"
 CRATE_REMOVED: "{PREFIX}&cCrate {CRATE} removed successfully"
@@ -14,6 +16,7 @@ CRATE_CURRENTLY_OPEN: "&cCrate is currently open"
 CRATE_NAME_INVENTORY: "&8{CRATE} Crate"
 CRATE_ITEM_NAME_INVENTORY: "&a{COUNT}x {NAME}"
 CRATE_ITEM_LORE_INVENTORY: "&eChance &f{CHANCE}"
+CRATE_CONFIRM_SKIP_ANIMATION: "&aRight click on shift to confirm the skip-animation and open the crate."
 CRATE_OPEN_REWARD: "&aCongratulations you won &e{REWARD} &aon &e{CRATE} Crate"
 CRATE_ANIMATION_TITLE: "&3{TIME}"
 CRATE_ANIMATION_SUBTITLE: "&eChoosing Gift"
@@ -32,8 +35,9 @@ COMMAND_SETUP_SET_CHANCE: "&aWrite chance in the chat."
 COMMAND_SETUP_SET_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: give money {PLAYER} 100,give {PLAYER} diamond_sword."
 COMMAND_SETUP_CRATE_COMMAND: "&aWrite the commands in the chat\n&eSeparating them this way, example: say {PLAYER} open crate,give {PLAYER} diamond_sword."
 COMMAND_SETUP_CRATE_HOLOGRAM: "&aWrite the hologram text in the chat.\n&eNote: &fUse {LINE} for line breaks"
-COMMAND_SETUP_CRATE_PARTICLE: "&aWrite the particle ID in the chat or write: rgb for the colored particle..\n&eExample: 8 (Flame particle)"
+COMMAND_SETUP_CRATE_PARTICLE: "&aWrite the particle ID in the chat or write: &f'RGB' &afor the colored particle.\n&eExample: &f8 (Flame particle)"
 COMMAND_SETUP_CRATE_PARTICLE_COLOR: "&aWrite the color rgb in the chat.\n&eExample: &f0:255:0 (Green color)"
+COMMAND_SETUP_CRATE_OPENING_ANIMATION: "&aWrite an available animation or &f'none' &ato disable&r\n \n&eAnimations available: &f{ANIMATIONS}"
 
 SETUP_SUCCESS_ADD_REWARD: "&aNew item reward added successfully."
 SETUP_SUCCESS_DELETED_REWARD: "&aReward ({SLOT}) deleted successfully."
@@ -42,8 +46,11 @@ SETUP_SUCCESS_CHANCE: "&aThe chance was set to {VALUE}"
 SETUP_SUCCESS_COMMAND: "&aThe commands was set to {VALUE}"
 SETUP_SUCCESS_HOLOGRAM: "&aThe hologram was set to {VALUE}"
 SETUP_SUCCESS_CRATE_COMMAND: "&aThe crate commands was set to {VALUE}"
-SETUP_SUCCESS_CRATE_PARTICLE: "&aThe crate particle id was set to {VALUE}"
+SETUP_SUCCESS_CRATE_PARTICLE: "&aThe particles were {VALUE}"
+SETUP_SUCCESS_CRATE_PARTICLE_ID: "&aThe crate particle id was set to {VALUE}"
 SETUP_SUCCESS_CRATE_PARTICLE_COLOR: "&aThe crate particle color was set to {VALUE}"
+SETUP_SUCCESS_CRATE_OPENING_ANIMATION: "&aThe animation was successfully changed to {VALUE}"
+SETUP_DISABLED_CRATE_OPENING_ANIMATION: "&cThe opening animation was successfully disabled."
 
 COMMAND_KEY_GIVE: "&aPlayer {PLAYER} received a x{COUNT} {CRATE} key successfully."
 COMMAND_KEY_RECEIVED: "&aYou received a x{COUNT} {CRATE} key."

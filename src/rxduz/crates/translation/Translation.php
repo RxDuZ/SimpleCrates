@@ -2,61 +2,48 @@
 
 namespace rxduz\crates\translation;
 
+use JackMD\ConfigUpdater\ConfigUpdater;
 use pocketmine\utils\Config;
 use pocketmine\utils\SingletonTrait;
 use pocketmine\utils\TextFormat;
 use rxduz\crates\Main;
 
-class Translation
+final class Translation
 {
 
-	use SingletonTrait;
-
-	/** @var float */
-	public const VERSION = 1.5;
-
-	/** @var string */
-	public const EMPTY_MESSAGE = TextFormat::RED . 'This message does not exist or was deleted';
-
-	/** @var Config|null $data */
-	private Config|null $data = null;
-
-	/** @var array */
-	private array $messages = [];
-
-	public function init()
-	{
-		$this->data = new Config(Main::getInstance()->getDataFolder() . '/messages.yml', Config::YAML);
-
-		if ((!$this->data->exists('MESSAGES_VERSION')) or ($this->data->get('MESSAGES_VERSION') !== self::VERSION)) {
-			rename(Main::getInstance()->getDataFolder() . 'messages.yml', Main::getInstance()->getDataFolder() . 'messages_old.yml');
-
-			Main::getInstance()->saveResource('/messages.yml');
-
-			Main::getInstance()->getLogger()->notice(Main::PREFIX . '(messages.yml) The version does not match so it was updated.');
-
-			$this->data = new Config(Main::getInstance()->getDataFolder() . '/messages.yml', Config::YAML);
-		}
-
-		$this->messages = $this->data->getAll();
+	use SingletonTrait {
+		setInstance as private;
+		reset as private;
 	}
 
-	public function getData(): Config|null
+	/** @var int */
+	public const MESSAGES_VERSION = 2;
+
+	/** @var Config|null */
+	private Config|null $messages = null;
+
+	/**
+	 * @param Main $plugin
+	 */
+	public function load(Main $plugin): void
 	{
-		return $this->data;
+		$this->messages = new Config($plugin->getDataFolder() . '/messages.yml', Config::YAML);
+
+		ConfigUpdater::checkUpdate($plugin, $this->messages, 'MESSAGES_VERSION', self::MESSAGES_VERSION);
 	}
 
 	/**
 	 * @param string $key
-	 * @param array $replace
+	 * @param array $tags
+	 * 
 	 * @return string
 	 */
-	public function getMessage(string $key, array $replace = []): string
+	public function getMessage(string $key, array $tags = []): string
 	{
-		$message = $this->messages[$key] ?? self::EMPTY_MESSAGE;
+		$message = $this->messages->get($key, 'Message \'' . $key . '\'does not exist.');
 
-		foreach ($replace as $k => $v) {
-			$message = str_replace($k, strval($v), $message);
+		foreach ($tags as $tag => $value) {
+			$message = str_replace($tag, strval($value), $message);
 		}
 
 		return TextFormat::colorize($message);
