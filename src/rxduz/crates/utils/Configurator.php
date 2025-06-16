@@ -113,6 +113,32 @@ final class Configurator
 
         $drop->setCommands($commands);
 
+        $drop->setType('command');
+
+        $drops[$slot] = $drop;
+
+        $this->crate->setDrops($drops);
+    }
+
+    /**
+     * @throws RuntimeException If the drop not exists.
+     */
+    public function removeCommand(): void
+    {
+        $drops = $this->crate->getDrops();
+
+        $slot = $this->slot;
+
+        $drop = $drops[$slot] ?? null;
+
+        if ($drop === null) {
+            throw new RuntimeException('Drop ' . $slot . ' not found.');
+        }
+
+        $drop->setCommands([]);
+
+        $drop->setType('item');
+
         $drops[$slot] = $drop;
 
         $this->crate->setDrops($drops);

@@ -90,7 +90,7 @@ final class CrateManager
                 $drops,
                 $value['commands'] ?? [],
                 $value['floating-text'] ?? '',
-                $value['particle enabled'] ?? true,
+                $value['particle-enabled'] ?? true,
                 $value['particle-id'] ?? -1,
                 $value['particle-color'] ?? '0:255:0',
                 $value['opening-animation'] ?? 'none'

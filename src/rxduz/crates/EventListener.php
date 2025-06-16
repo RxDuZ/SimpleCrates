@@ -145,9 +145,13 @@ class EventListener implements Listener
                 case CrateManager::CONFIGURATOR_ITEM_COMMAND:
                     $message = $ev->getMessage();
 
-                    $commands = explode(',', $message);
+                    if (strtolower($message) === 'none') {
+                        $configurator->removeCommand();
+                    } else {
+                        $commands = explode(',', $message);
 
-                    $configurator->setCommand($commands);
+                        $configurator->setCommand($commands);
+                    }
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
@@ -173,9 +177,15 @@ class EventListener implements Listener
                 case CrateManager::CONFIGURATOR_CRATE_COMMANDS:
                     $message = $ev->getMessage();
 
-                    $commands = explode(',', $message);
+                    $crate = $configurator->getCrate();
 
-                    $configurator->getCrate()->setCommands($commands);
+                    if (strtolower($message) === 'none') {
+                        $crate->setCommands([]);
+                    } else {
+                        $commands = explode(',', $message);
+
+                        $crate->setCommands($commands);
+                    }
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
@@ -186,8 +196,10 @@ class EventListener implements Listener
                 case CrateManager::CONFIGURATOR_CRATE_PARTICLE:
                     $message = $ev->getMessage();
 
+                    $crate = $configurator->getCrate();
+
                     if (is_string($message) and strtolower($message) === 'rgb') {
-                        $configurator->getCrate()->setParticleId(-1);
+                        $crate->setParticleId(-1);
 
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
@@ -199,7 +211,7 @@ class EventListener implements Listener
                             $id = 89;
                         }
 
-                        $configurator->getCrate()->setParticleId($id);
+                        $crate->setParticleId($id);
 
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
@@ -242,8 +254,10 @@ class EventListener implements Listener
                 case CrateManager::CONFIGURATOR_CRATE_OPENING_ANIMATION:
                     $message = strtolower($ev->getMessage());
 
+                    $crate = $configurator->getCrate();
+
                     if ($message === 'none') {
-                        $configurator->getCrate()->setOpeningAnimation();
+                        $crate->setOpeningAnimation();
 
                         Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 
@@ -262,7 +276,7 @@ class EventListener implements Listener
                         return;
                     }
 
-                    $configurator->getCrate()->setOpeningAnimation($message);
+                    $crate->setOpeningAnimation($message);
 
                     Main::getInstance()->getCrateManager()->removeConfigurator($player->getName());
 

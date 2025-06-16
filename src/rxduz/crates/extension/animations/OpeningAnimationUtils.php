@@ -88,7 +88,8 @@ final class OpeningAnimationUtils
      * @param Crate $crate
      * @param Player $player
      * 
-     * @throws InvalidArgumentException If the animation not exists or if the data is invalid.
+     * @throws RuntimeException If the animation not exists.
+     * @throws InvalidArgumentException  If the data is invalid.
      */
     public function sendAnimationTask(string $animationId, Crate $crate, Player $player): void
     {
