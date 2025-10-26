@@ -8,6 +8,7 @@ use pocketmine\utils\TextFormat;
 use rxduz\crates\command\subcommand\CreateSubCommand;
 use rxduz\crates\command\subcommand\DeleteSubCommand;
 use rxduz\crates\command\subcommand\EditorSubCommand;
+use rxduz\crates\command\subcommand\HelpSubCommand;
 use rxduz\crates\command\subcommand\ListSubCommand;
 use rxduz\crates\command\subcommand\ReloadConfigSubCommand;
 use rxduz\crates\command\subcommand\RenameItemSubCommand;
@@ -24,23 +25,17 @@ class CrateCommand extends BaseCommand
     public function prepare(): void
     {
         $this->setPermission('simplecrates.command');
-        $this->registerSubCommand(new CreateSubCommand('create', 'Create new crate', ['make']));
-        $this->registerSubCommand(new DeleteSubCommand('delete', 'Delete crate', ['remove']));
-        $this->registerSubCommand(new ListSubCommand('list', 'View crate list'));
-        $this->registerSubCommand(new ReloadConfigSubCommand('reloadconfig', 'Reload all configs.'));
-        $this->registerSubCommand(new EditorSubCommand('editor', 'Open crate menu editor', ['edit']));
-        $this->registerSubCommand(new RenameItemSubCommand('renameitem', 'Rename an item'));
+        $this->registerSubCommand(new HelpSubCommand($this, 'help', 'Display command list', ['?', 'h']));
+        $this->registerSubCommand(new CreateSubCommand($this->plugin, 'create', 'Create new crate', ['make']));
+        $this->registerSubCommand(new DeleteSubCommand($this->plugin, 'delete', 'Remove a crate', ['remove']));
+        $this->registerSubCommand(new ListSubCommand($this->plugin, 'list', 'View crate list'));
+        $this->registerSubCommand(new ReloadConfigSubCommand($this->plugin, 'reloadconfig', 'Reload all configs.'));
+        $this->registerSubCommand(new EditorSubCommand($this->plugin, 'editor', 'Open crate menu editor', ['edit']));
+        $this->registerSubCommand(new RenameItemSubCommand($this->plugin, 'renameitem', 'Rename an item'), ['rename']);
     }
 
     public function onRun(CommandSender $sender, string $aliasUsed, array $args): void
     {
-        $message = Main::PREFIX . TextFormat::RESET . TextFormat::BLUE . 'commands:' . TextFormat::EOL;
-        $message .= TextFormat::YELLOW . '/' . $aliasUsed . ' create <crateName> ' . TextFormat::WHITE . 'Create new crate' . TextFormat::EOL;
-        $message .= TextFormat::YELLOW . '/' . $aliasUsed . ' delete <crateName> ' . TextFormat::WHITE . 'Remove a crate' . TextFormat::EOL;
-        $message .= TextFormat::YELLOW . '/' . $aliasUsed . ' list ' . TextFormat::WHITE . 'View crate list' . TextFormat::EOL;
-        $message .= TextFormat::YELLOW . '/' . $aliasUsed . ' reloadconfig ' . TextFormat::WHITE . 'Reload all configs' . TextFormat::EOL;
-        $message .= TextFormat::YELLOW . '/' . $aliasUsed . ' editor <crateName> ' . TextFormat::WHITE . 'Crate editor menu' . TextFormat::EOL;
-        $message .= TextFormat::YELLOW . '/' . $aliasUsed . ' renameitem <name|lore> <text> ' . TextFormat::WHITE . 'Rename an item ' . TextFormat::GRAY . '(Note: To skip a line in the lore use {LINE})' . TextFormat::EOL;
-        $sender->sendMessage($message);
+        $sender->sendMessage(TextFormat::GREEN . '[SimpleCrates] made by iRxDuZ');
     }
 }
